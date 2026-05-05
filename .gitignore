@@ -1,1 +1,7 @@
-"backend/vendor/backend/.envbackend/database/database.sqlitefrontend/node_modules/frontend/dist/.DS_Store.vscode/" 
+backend/vendor/
+backend/.env
+backend/database/database.sqlite
+frontend/node_modules/
+frontend/dist/
+.DS_Store
+.vscode/
