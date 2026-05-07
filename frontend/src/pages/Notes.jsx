@@ -7,10 +7,10 @@ import NoteForm from '../components/NoteForm';
 import Toast from '../components/Toast';
 
 const FILTERS = [
-  { value: 'toutes',  label: 'Toutes' },
-  { value: 'haute',   label: '🔴 Haute' },
-  { value: 'moyenne', label: '🟠 Moyenne' },
-  { value: 'basse',   label: '🟢 Basse' },
+  { value: 'toutes',  label: 'Toutes',    active: 'bg-indigo-600 text-white', inactive: 'bg-white border border-slate-200 text-slate-600' },
+  { value: 'haute',   label: '❤️ Haute',  active: 'bg-rose-600 text-white',   inactive: 'bg-white border border-slate-200 text-slate-600' },
+  { value: 'moyenne', label: '💚 Moyenne',active: 'bg-amber-500 text-white',  inactive: 'bg-white border border-slate-200 text-slate-600' },
+  { value: 'basse',   label: '🖤 Basse',  active: 'bg-emerald-600 text-white',inactive: 'bg-white border border-slate-200 text-slate-600' },
 ];
 
 export default function Notes() {
@@ -152,17 +152,15 @@ export default function Notes() {
             </h2>
             <div className="flex gap-2 flex-wrap">
               {FILTERS.map((f) => (
-                <button
-                  key={f.value}
-                  onClick={() => setFilter(f.value)}
-                  className={`text-xs px-3 py-1.5 rounded-full font-medium transition-colors
-                    ${filter === f.value
-                      ? 'bg-indigo-600 text-white'
-                      : 'bg-white border border-slate-200 text-slate-600 hover:border-indigo-300'}`}
-                >
-                  {f.label}
-                </button>
-              ))}
+                  <button
+                    key={f.value}
+                    onClick={() => setFilter(f.value)}
+                    className={`text-xs px-3 py-1.5 rounded-full font-medium transition-colors
+                      ${filter === f.value ? f.active : f.inactive}`}
+                  >
+                    {f.label}
+                  </button>
+                ))}
             </div>
           </div>
 

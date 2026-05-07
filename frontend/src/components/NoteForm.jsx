@@ -113,9 +113,9 @@ export default function NoteForm({ editingNote, onSaved, onCancel, showToast }) 
           className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-sm
             outline-none focus:border-indigo-400 transition-colors cursor-pointer"
         >
-          <option value="basse">🟢 Basse</option>
-          <option value="moyenne">🟠 Moyenne</option>
-          <option value="haute">🔴 Haute</option>
+          <option value="basse">🖤Basse</option>
+          <option value="moyenne">💚Moyenne</option>
+          <option value="haute">❤️ Haute</option>
         </select>
       </div>
 
