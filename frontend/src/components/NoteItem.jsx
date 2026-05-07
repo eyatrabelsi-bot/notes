@@ -1,54 +1,69 @@
-const PRIORITY_CONFIG = {
-  haute:   { label: 'Haute',   class: 'bg-rose-100 text-rose-700 border border-rose-200' },
-  moyenne: { label: 'Moyenne', class: 'bg-amber-100 text-amber-700 border border-amber-200' },
-  basse:   { label: 'Basse',   class: 'bg-emerald-100 text-emerald-700 border border-emerald-200' },
+import { FiEdit2, FiTrash2 } from 'react-icons/fi';
+
+const PRIORITY = {
+  haute:   { label:'Haute',   color:'#E8737A', bg:'#FDEAEB', dot:'🔴' },
+  moyenne: { label:'Moyenne', color:'#F5A623', bg:'#FFF3DC', dot:'🟠' },
+  basse:   { label:'Basse',   color:'#4DBFA8', bg:'#E1F7F3', dot:'🟢' },
 };
 
 function formatDate(dateStr) {
-  return new Date(dateStr).toLocaleDateString('fr-FR', {
-    day: 'numeric', month: 'long', year: 'numeric',
-  });
+  return new Date(dateStr).toLocaleDateString('fr-FR', { day:'numeric', month:'short', year:'numeric' });
 }
 
 export default function NoteItem({ note, onEdit, onDelete }) {
-  const priority = PRIORITY_CONFIG[note.priority] ?? PRIORITY_CONFIG.basse;
+  const p = PRIORITY[note.priority] ?? PRIORITY.basse;
 
   return (
-    <div className="group bg-white rounded-2xl shadow-sm border border-slate-100 p-5 flex flex-col gap-3
-      hover:shadow-md hover:-translate-y-0.5 transition-all duration-200">
-
-      {/* En-tête : titre + badge priorité */}
-      <div className="flex items-start justify-between gap-2">
-        <h3 className="font-semibold text-slate-800 text-base leading-snug flex-1 line-clamp-2">
+    <div className="card fade-in" style={{
+      padding: '18px 18px 14px',
+      display: 'flex', flexDirection: 'column', gap: 10,
+      transition: 'transform 0.2s, box-shadow 0.2s',
+      cursor: 'default',
+    }}
+      onMouseEnter={e => { e.currentTarget.style.transform='translateY(-2px)'; e.currentTarget.style.boxShadow='0 8px 28px rgba(0,0,0,0.11)'; }}
+      onMouseLeave={e => { e.currentTarget.style.transform='none'; e.currentTarget.style.boxShadow=''; }}
+    >
+      {/* Top row */}
+      <div style={{ display:'flex', alignItems:'flex-start', gap:10 }}>
+        <h3 style={{ flex:1, fontWeight:800, fontSize:14, color:'#2D2D3A', lineHeight:1.4, wordBreak:'break-word' }}>
           {note.title}
         </h3>
-        <span className={`shrink-0 text-xs font-semibold px-2.5 py-0.5 rounded-full ${priority.class}`}>
-          {priority.label}
+        <span className="badge" style={{ background:p.bg, color:p.color, flexShrink:0 }}>
+          {p.dot} {p.label}
         </span>
       </div>
 
-      {/* Contenu */}
+      {/* Content preview */}
       {note.content && (
-        <p className="text-slate-500 text-sm leading-relaxed line-clamp-3">
+        <p style={{ color:'#9B9BAD', fontSize:13, fontWeight:600, lineHeight:1.5,
+          display:'-webkit-box', WebkitLineClamp:2, WebkitBoxOrient:'vertical', overflow:'hidden' }}>
           {note.content}
         </p>
       )}
 
-      {/* Pied : date + actions */}
-      <div className="flex items-center justify-between pt-1 mt-auto">
-        <span className="text-xs text-slate-400">{formatDate(note.created_at)}</span>
-        <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-          <button
-            onClick={() => onEdit(note)}
-            className="text-xs px-3 py-1.5 rounded-lg bg-slate-100 text-slate-600 hover:bg-indigo-100 hover:text-indigo-700 transition-colors font-medium"
-          >
-            Modifier
+      {/* Bottom row */}
+      <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', borderTop:'1px solid #F0EEF8', paddingTop:10 }}>
+        <span style={{ fontSize:11, fontWeight:700, color:'#C4C4D0' }}>
+          {formatDate(note.created_at)}
+        </span>
+        <div style={{ display:'flex', gap:6 }}>
+          <button onClick={() => onEdit(note)} style={{
+            background:'#FFF3DC', border:'none', borderRadius:10,
+            padding:'7px 12px', cursor:'pointer',
+            display:'flex', alignItems:'center', gap:5,
+            color:'#F5A623', fontSize:12, fontWeight:800,
+            fontFamily:'Nunito,sans-serif', transition:'opacity 0.15s',
+          }}>
+            <FiEdit2 size={13}/> Modifier
           </button>
-          <button
-            onClick={() => onDelete(note)}
-            className="text-xs px-3 py-1.5 rounded-lg bg-slate-100 text-slate-600 hover:bg-rose-100 hover:text-rose-700 transition-colors font-medium"
-          >
-            Supprimer
+          <button onClick={() => onDelete(note)} style={{
+            background:'#FDEAEB', border:'none', borderRadius:10,
+            padding:'7px 12px', cursor:'pointer',
+            display:'flex', alignItems:'center', gap:5,
+            color:'#E8737A', fontSize:12, fontWeight:800,
+            fontFamily:'Nunito,sans-serif', transition:'opacity 0.15s',
+          }}>
+            <FiTrash2 size={13}/> Supprimer
           </button>
         </div>
       </div>

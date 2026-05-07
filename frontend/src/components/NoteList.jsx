@@ -3,30 +3,38 @@ import NoteItem from './NoteItem';
 export default function NoteList({ notes, filter, onEdit, onDelete, loading }) {
   if (loading) {
     return (
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        {[...Array(4)].map((_, i) => (
-          <div key={i} className="bg-slate-100 rounded-2xl h-36 animate-pulse" />
+      <div style={{ display:'grid', gridTemplateColumns:'1fr', gap:12 }}>
+        {[...Array(3)].map((_, i) => (
+          <div key={i} className="skeleton" style={{ height:110, animationDelay:`${i*0.12}s` }} />
         ))}
       </div>
     );
   }
 
-  const filtered = filter === 'toutes'
-    ? notes
-    : notes.filter((n) => n.priority === filter);
+  const filtered = filter === 'toutes' ? notes : notes.filter(n => n.priority === filter);
 
   if (filtered.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center py-16 text-slate-400">
-        <span className="text-5xl mb-3">📝</span>
-        <p className="text-sm">Aucune note à afficher.</p>
+      <div style={{ display:'flex', flexDirection:'column', alignItems:'center', padding:'48px 0', gap:12 }}>
+        <div style={{
+          width:72, height:72, borderRadius:'50%',
+          background:'white',
+          display:'flex', alignItems:'center', justifyContent:'center',
+          fontSize:32, boxShadow:'0 4px 16px rgba(0,0,0,0.07)',
+        }}>📝</div>
+        <p style={{ color:'#9B9BAD', fontSize:14, fontWeight:700, textAlign:'center' }}>
+          {filter !== 'toutes' ? `Aucune note de priorité "${filter}"` : 'Aucune note pour l\'instant'}
+        </p>
+        <p style={{ color:'#C4C4D0', fontSize:13, fontWeight:600 }}>
+          Appuyez sur + pour en créer une
+        </p>
       </div>
     );
   }
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-      {filtered.map((note) => (
+    <div style={{ display:'grid', gridTemplateColumns:'1fr', gap:12 }}>
+      {filtered.map(note => (
         <NoteItem key={note.id} note={note} onEdit={onEdit} onDelete={onDelete} />
       ))}
     </div>

@@ -1,60 +1,52 @@
 import { useState, useEffect } from 'react';
 import api from '../api/axiosInstance';
+import { FiX } from 'react-icons/fi';
 
-const EMPTY_FORM = { title: '', content: '', priority: 'moyenne' };
+const EMPTY = { title: '', content: '', priority: 'moyenne' };
+
+const PRIORITIES = [
+  { value: 'haute',   label: 'Haute',   color: '#E8737A', bg: '#FDEAEB' },
+  { value: 'moyenne', label: 'Moyenne', color: '#F5A623', bg: '#FFF3DC' },
+  { value: 'basse',   label: 'Basse',   color: '#4DBFA8', bg: '#E1F7F3' },
+];
 
 export default function NoteForm({ editingNote, onSaved, onCancel, showToast }) {
-  const [form, setForm]       = useState(EMPTY_FORM);
+  const [form, setForm]       = useState(EMPTY);
   const [errors, setErrors]   = useState({});
   const [loading, setLoading] = useState(false);
 
-  // Pré-remplir le formulaire lors de l'édition
   useEffect(() => {
-    if (editingNote) {
-      setForm({
-        title:    editingNote.title,
-        content:  editingNote.content ?? '',
-        priority: editingNote.priority,
-      });
-    } else {
-      setForm(EMPTY_FORM);
-    }
+    setForm(editingNote
+      ? { title: editingNote.title, content: editingNote.content ?? '', priority: editingNote.priority }
+      : EMPTY
+    );
     setErrors({});
   }, [editingNote]);
 
-  const handleChange = (e) => {
-    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
-    if (errors[e.target.name]) setErrors((prev) => ({ ...prev, [e.target.name]: null }));
+  const handle = (k, v) => {
+    setForm(f => ({ ...f, [k]: v }));
+    if (errors[k]) setErrors(e => ({ ...e, [k]: null }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    // Validation côté client
-    if (!form.title.trim()) {
-      setErrors({ title: 'Le titre est obligatoire.' });
-      return;
-    }
-
+    if (!form.title.trim()) { setErrors({ title: 'Le titre est obligatoire.' }); return; }
     setLoading(true);
     try {
       if (editingNote) {
         await api.put(`/notes/${editingNote.id}`, form);
-        showToast('Note modifiée avec succès !', 'success');
+        showToast('Note modifiée !', 'success');
       } else {
         await api.post('/notes', form);
-        showToast('Note créée avec succès !', 'success');
+        showToast('Note créée !', 'success');
       }
-      setForm(EMPTY_FORM);
+      setForm(EMPTY);
       onSaved();
     } catch (err) {
-      const apiErrors = err.response?.data?.errors;
-      if (apiErrors) {
-        // Récupérer les erreurs de validation Laravel (422)
+      const api_errs = err.response?.data?.errors;
+      if (api_errs) {
         const mapped = {};
-        Object.entries(apiErrors).forEach(([field, msgs]) => {
-          mapped[field] = msgs[0];
-        });
+        Object.entries(api_errs).forEach(([f, msgs]) => { mapped[f] = msgs[0]; });
         setErrors(mapped);
       } else {
         showToast("Une erreur s'est produite.", 'error');
@@ -65,80 +57,78 @@ export default function NoteForm({ editingNote, onSaved, onCancel, showToast }) 
   };
 
   return (
-    <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-4">
-      {/* Titre */}
-      <div>
-        <label className="block text-sm font-medium text-slate-700 mb-1">
-          Titre <span className="text-rose-500">*</span>
-        </label>
-        <input
-          type="text"
-          name="title"
-          value={form.title}
-          onChange={handleChange}
-          maxLength={100}
-          placeholder="Titre de la note…"
-          className={`w-full px-4 py-2.5 rounded-xl border text-sm outline-none transition-colors
-            ${errors.title
-              ? 'border-rose-400 bg-rose-50 focus:border-rose-500'
-              : 'border-slate-200 bg-white focus:border-indigo-400'}`}
-        />
-        {errors.title && (
-          <p className="text-rose-500 text-xs mt-1">{errors.title}</p>
-        )}
-        <p className="text-xs text-slate-400 mt-1 text-right">{form.title.length}/100</p>
-      </div>
-
-      {/* Contenu */}
-      <div>
-        <label className="block text-sm font-medium text-slate-700 mb-1">Contenu</label>
-        <textarea
-          name="content"
-          value={form.content}
-          onChange={handleChange}
-          rows={4}
-          placeholder="Contenu de la note (optionnel)…"
-          className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-sm
-            outline-none focus:border-indigo-400 transition-colors resize-none"
-        />
-      </div>
-
-      {/* Priorité */}
-      <div>
-        <label className="block text-sm font-medium text-slate-700 mb-1">Priorité</label>
-        <select
-          name="priority"
-          value={form.priority}
-          onChange={handleChange}
-          className="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-white text-sm
-            outline-none focus:border-indigo-400 transition-colors cursor-pointer"
-        >
-          <option value="basse">🖤Basse</option>
-          <option value="moyenne">💚Moyenne</option>
-          <option value="haute">❤️ Haute</option>
-        </select>
-      </div>
-
-      {/* Boutons */}
-      <div className="flex gap-3 pt-1">
-        <button
-          type="submit"
-          disabled={loading}
-          className="flex-1 py-2.5 rounded-xl bg-indigo-600 text-white text-sm font-semibold
-            hover:bg-indigo-700 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
-        >
-          {loading ? 'Enregistrement…' : editingNote ? 'Mettre à jour' : 'Ajouter la note'}
-        </button>
-        {editingNote && (
-          <button
-            type="button"
-            onClick={onCancel}
-            className="px-4 py-2.5 rounded-xl border border-slate-200 text-slate-600 text-sm
-              font-medium hover:bg-slate-50 transition-colors"
-          >
-            Annuler
+    <form onSubmit={handleSubmit} noValidate style={{ display:'flex', flexDirection:'column', gap:18 }}>
+      {/* Handle + close */}
+      <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:4 }}>
+        <h3 style={{ fontSize:18, fontWeight:800, color:'#2D2D3A' }}>
+          {editingNote ? 'Modifier la note' : 'Nouvelle note'}
+        </h3>
+        {onCancel && (
+          <button type="button" onClick={onCancel} className="btn-ghost">
+            <FiX size={20} color="#9B9BAD"/>
           </button>
         )}
+      </div>
+
+      {/* Title */}
+      <div>
+        <label className="field-label">Titre *</label>
+        <input
+          type="text" value={form.title} maxLength={100}
+          onChange={e => handle('title', e.target.value)}
+          placeholder="Titre de la note…"
+          className={`field-input${errors.title ? ' error' : ''}`}
+        />
+        <div style={{ display:'flex', justifyContent:'space-between', marginTop:5 }}>
+          {errors.title
+            ? <span style={{ color:'#E8737A', fontSize:12, fontWeight:700 }}>{errors.title}</span>
+            : <span/>
+          }
+          <span style={{ color:'#9B9BAD', fontSize:11, fontWeight:600 }}>{form.title.length}/100</span>
+        </div>
+      </div>
+
+      {/* Content */}
+      <div>
+        <label className="field-label">Contenu</label>
+        <textarea
+          value={form.content}
+          onChange={e => handle('content', e.target.value)}
+          rows={4}
+          placeholder="Contenu de la note (optionnel)…"
+          className="field-input"
+          style={{ resize:'none', lineHeight:1.6 }}
+        />
+      </div>
+
+      {/* Priority */}
+      <div>
+        <label className="field-label">Priorité</label>
+        <div style={{ display:'flex', gap:8 }}>
+          {PRIORITIES.map(p => (
+            <button
+              key={p.value} type="button"
+              onClick={() => handle('priority', p.value)}
+              style={{
+                flex:1, padding:'10px 6px', borderRadius:12, border:'none', cursor:'pointer',
+                fontFamily:'Nunito,sans-serif', fontWeight:800, fontSize:12,
+                background: form.priority === p.value ? p.bg : '#F4F2EE',
+                color: form.priority === p.value ? p.color : '#9B9BAD',
+                boxShadow: form.priority === p.value ? `0 0 0 2px ${p.color}` : 'none',
+                transition:'all 0.18s',
+              }}
+            >
+              {p.value === 'haute' ? '🔴' : p.value === 'moyenne' ? '🟠' : '🟢'} {p.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Buttons */}
+      <div style={{ display:'flex', gap:10, marginTop:4 }}>
+        <button type="submit" disabled={loading} className="btn-primary" style={{ flex:1 }}>
+          {loading ? 'Enregistrement…' : editingNote ? 'Mettre à jour' : 'Ajouter la note'}
+        </button>
       </div>
     </form>
   );

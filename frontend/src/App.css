@@ -182,3 +182,7 @@
     border-right-color: var(--border);
   }
 }
+@keyframes slideInLeft {
+  from { transform: translateX(-100%); }
+  to   { transform: translateX(0); }
+}
