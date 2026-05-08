@@ -1,338 +1,235 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import BottomNav from '../components/BottomNav';
-import api from '../api/axiosInstance';
-import { FiChevronLeft, FiChevronRight, FiPlus } from 'react-icons/fi';
+import { FiChevronLeft, FiChevronRight, FiPlus, FiRefreshCw } from 'react-icons/fi';
+
+// Stockage local des tâches (clé partagée avec Todo.jsx)
+const TASKS_KEY = 'app_tasks';
+
+function loadTasks() {
+  try { return JSON.parse(localStorage.getItem(TASKS_KEY) || '[]'); }
+  catch { return []; }
+}
+
+function getDaysInMonth(year, month) {
+  return new Date(year, month + 1, 0).getDate();
+}
+function getFirstDayOfMonth(year, month) {
+  return new Date(year, month, 1).getDay(); // 0=Sun
+}
+function toDateStr(year, month, day) {
+  return `${year}-${String(month + 1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+}
+function formatDisplay(year, month, day) {
+  return new Date(year, month, day).toLocaleDateString('fr-FR', { weekday:'long', day:'numeric', month:'long' });
+}
 
 const MONTHS_FR = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
 const DAYS_FR   = ['Dim','Lun','Mar','Mer','Jeu','Ven','Sam'];
-const ALL_HOURS = Array.from({ length: 24 }, (_, i) => i);
 
-const PRIORITY_STYLE = {
-  haute:   { bg:'#FDEAEB', border:'#E8737A', color:'#E8737A' },
-  moyenne: { bg:'#FFF3DC', border:'#F5A623', color:'#F5A623' },
-  basse:   { bg:'#E1F7F3', border:'#4DBFA8', color:'#4DBFA8' },
-  default: { bg:'#EEEAFF', border:'#7B6CF6', color:'#7B6CF6' },
+const CAT_COLORS = {
+  'SPORT APP':   { color:'#F5A623', bg:'#FFF3DC' },
+  'MEDICAL APP': { color:'#4DBFA8', bg:'#E1F7F3' },
+  'RENT APP':    { color:'#E8737A', bg:'#FDEAEB' },
+  'NOTES':       { color:'#7B6CF6', bg:'#EEEAFF' },
+  'GAMING APP':  { color:'#2D2D3A', bg:'#F0EEF8' },
 };
 
-function isSameDay(d1, d2) {
-  return d1.getFullYear() === d2.getFullYear() &&
-         d1.getMonth()    === d2.getMonth()    &&
-         d1.getDate()     === d2.getDate();
-}
+const VIEWS = ['Mois', 'Semaine', 'Jour'];
 
-function startOfWeek(date) {
-  const d = new Date(date);
-  d.setDate(d.getDate() - d.getDay());
-  d.setHours(0,0,0,0);
-  return d;
-}
-
-// ── Timeline ─────────────────────────────────────────────────────────────────
-function Timeline({ notes, filterDay }) {
-  const taskMap = {};
-  notes.forEach(note => {
-    const d = new Date(note.created_at);
-    if (filterDay && !isSameDay(d, filterDay)) return;
-    const h = d.getHours();
-    if (!taskMap[h]) taskMap[h] = [];
-    taskMap[h].push(note);
-  });
-
-  const hasAny = Object.keys(taskMap).length > 0;
-
-  return (
-    <div style={{ display:'flex', flexDirection:'column' }}>
-      {!hasAny && (
-        <div style={{ textAlign:'center', color:'#9B9BAD', fontSize:13, padding:'32px 0', fontWeight:700 }}>
-          Aucune note pour ce jour
-        </div>
-      )}
-      {ALL_HOURS.map(hour => {
-        const tasks = taskMap[hour] || [];
-        return (
-          <div key={hour} style={{ display:'flex', gap:12, minHeight: tasks.length ? 'auto' : 48 }}>
-            <div style={{
-              width:46, color:'#9B9BAD', fontSize:10, fontWeight:800,
-              paddingTop:10, flexShrink:0, textAlign:'right',
-            }}>
-              {`${String(hour).padStart(2,'0')}h00`}
-            </div>
-            <div style={{
-              flex:1, borderTop:'1px solid #EEECF5',
-              paddingTop: tasks.length ? 8 : 0,
-              paddingBottom: tasks.length ? 10 : 0,
-              display:'flex', flexDirection:'column', gap:6,
-            }}>
-              {tasks.map((note, i) => {
-                const s = PRIORITY_STYLE[note.priority] ?? PRIORITY_STYLE.default;
-                return (
-                  <div key={note.id ?? i} style={{
-                    background: s.bg,
-                    borderLeft: `4px solid ${s.border}`,
-                    borderRadius:'0 12px 12px 0',
-                    padding:'10px 14px',
-                  }}>
-                    <div style={{ fontWeight:800, fontSize:13, color:'#2D2D3A' }}>{note.title}</div>
-                    {note.content && (
-                      <div style={{ fontSize:11, color:'#9B9BAD', marginTop:3, lineHeight:1.5, fontWeight:600 }}>
-                        {note.content}
-                      </div>
-                    )}
-                    <div style={{ fontSize:10, color: s.color, marginTop:5, fontWeight:800, textTransform:'uppercase' }}>
-                      {note.priority}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        );
-      })}
-    </div>
-  );
-}
-
-// ── Vue MOIS ──────────────────────────────────────────────────────────────────
-function MonthView({ year, month, today, selected, onSelect, notes }) {
-  const firstDay    = new Date(year, month, 1).getDay();
-  const daysInMonth = new Date(year, month + 1, 0).getDate();
-  const cells = Array(firstDay).fill(null).concat(
-    Array.from({ length: daysInMonth }, (_, i) => i + 1)
-  );
-  while (cells.length % 7 !== 0) cells.push(null);
-
-  const notesByDay = {};
-  notes.forEach(n => {
-    const d = new Date(n.created_at);
-    if (d.getFullYear() === year && d.getMonth() === month) {
-      const key = d.getDate();
-      if (!notesByDay[key]) notesByDay[key] = [];
-      notesByDay[key].push(n);
-    }
-  });
-
-  return (
-    <>
-      <div style={{ display:'grid', gridTemplateColumns:'repeat(7,1fr)', marginBottom:6 }}>
-        {DAYS_FR.map(d => (
-          <div key={d} style={{ textAlign:'center', fontSize:10, color:'#9B9BAD', fontWeight:800, padding:'6px 0' }}>{d}</div>
-        ))}
-      </div>
-      <div style={{ display:'grid', gridTemplateColumns:'repeat(7,1fr)', gap:3 }}>
-        {cells.map((day, i) => {
-          if (!day) return <div key={`e${i}`}/>;
-          const isToday  = today.getFullYear()===year && today.getMonth()===month && today.getDate()===day;
-          const isSel    = selected && selected.getFullYear()===year && selected.getMonth()===month && selected.getDate()===day;
-          const dots     = (notesByDay[day] || []).slice(0,3).map(n => (PRIORITY_STYLE[n.priority]??PRIORITY_STYLE.default).border);
-          return (
-            <div key={day} onClick={() => onSelect(new Date(year, month, day))}
-              style={{
-                display:'flex', flexDirection:'column', alignItems:'center',
-                padding:'6px 2px', borderRadius:10, cursor:'pointer',
-                background: isSel ? 'linear-gradient(135deg,#F5A623,#F7C55A)' : isToday ? '#FFF3DC' : 'transparent',
-                border: isToday && !isSel ? '1.5px solid #F5A623' : '1.5px solid transparent',
-                transition:'all 0.15s',
-              }}>
-              <span style={{
-                fontSize:13, fontWeight:900,
-                color: isSel ? 'white' : isToday ? '#F5A623' : '#2D2D3A',
-              }}>{day}</span>
-              {dots.length > 0 && (
-                <div style={{ display:'flex', gap:2, marginTop:3 }}>
-                  {dots.map((c,j) => (
-                    <div key={j} style={{ width:5, height:5, borderRadius:'50%', background: isSel ? 'rgba(255,255,255,0.8)' : c }}/>
-                  ))}
-                </div>
-              )}
-            </div>
-          );
-        })}
-      </div>
-    </>
-  );
-}
-
-// ── Vue SEMAINE ───────────────────────────────────────────────────────────────
-function WeekView({ weekStart, today, selected, onSelect, notes }) {
-  const days = Array.from({ length:7 }, (_, i) => {
-    const d = new Date(weekStart);
-    d.setDate(weekStart.getDate() + i);
-    return d;
-  });
-
-  return (
-    <>
-      <div style={{ display:'grid', gridTemplateColumns:'repeat(7,1fr)', marginBottom:16 }}>
-        {days.map((d, i) => {
-          const isToday = isSameDay(d, today);
-          const isSel   = selected && isSameDay(d, selected);
-          return (
-            <div key={i} onClick={() => onSelect(new Date(d))}
-              style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:6, cursor:'pointer' }}>
-              <span style={{ fontSize:10, color:'#9B9BAD', fontWeight:800 }}>{DAYS_FR[d.getDay()]}</span>
-              <div style={{
-                width:34, height:34, borderRadius:'50%',
-                display:'flex', alignItems:'center', justifyContent:'center',
-                background: isSel ? 'linear-gradient(135deg,#F5A623,#F7C55A)' : isToday ? '#FFF3DC' : 'transparent',
-                border: isToday && !isSel ? '1.5px solid #F5A623' : '1.5px solid transparent',
-              }}>
-                <span style={{ fontWeight:900, fontSize:13, color: isSel ? 'white' : isToday ? '#F5A623' : '#2D2D3A' }}>
-                  {d.getDate()}
-                </span>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-      <Timeline notes={notes} filterDay={selected}/>
-    </>
-  );
-}
-
-// ── Composant principal ───────────────────────────────────────────────────────
 export default function Calendar() {
-  const navigate  = useNavigate();
-  const today     = new Date();
-  today.setHours(0,0,0,0);
+  const navigate = useNavigate();
+  const today = new Date();
 
-  const [view,     setView]     = useState('month');
-  const [current,  setCurrent]  = useState(new Date(today));
-  const [selected, setSelected] = useState(new Date(today));
-  const [notes,    setNotes]    = useState([]);
-  const [loading,  setLoading]  = useState(true);
+  const [view, setView]     = useState('Mois');
+  const [year, setYear]     = useState(today.getFullYear());
+  const [month, setMonth]   = useState(today.getMonth());
+  const [selected, setSelected] = useState(toDateStr(today.getFullYear(), today.getMonth(), today.getDate()));
+  const [tasks, setTasks]   = useState(loadTasks);
 
-  const fetchNotes = useCallback(async () => {
-    try {
-      const { data } = await api.get('/notes');
-      setNotes(Array.isArray(data) ? data : []);
-    } catch {
-      setNotes([]);
-    } finally {
-      setLoading(false);
-    }
+  // Recharger les tâches quand on revient sur la page
+  useEffect(() => {
+    const refresh = () => setTasks(loadTasks());
+    window.addEventListener('focus', refresh);
+    // Aussi quand localStorage change (depuis Todo)
+    window.addEventListener('storage', refresh);
+    return () => { window.removeEventListener('focus', refresh); window.removeEventListener('storage', refresh); };
   }, []);
 
-  useEffect(() => { fetchNotes(); }, [fetchNotes]);
+  // Refresh manuel
+  const refresh = () => setTasks(loadTasks());
 
-  const go = (dir) => {
-    const d = new Date(current);
-    if (view === 'month') d.setMonth(d.getMonth() + dir);
-    else if (view === 'week') d.setDate(d.getDate() + dir * 7);
-    else { d.setDate(d.getDate() + dir); setSelected(new Date(d)); }
-    setCurrent(d);
+  const prevMonth = () => {
+    if (month === 0) { setYear(y => y - 1); setMonth(11); }
+    else setMonth(m => m - 1);
+  };
+  const nextMonth = () => {
+    if (month === 11) { setYear(y => y + 1); setMonth(0); }
+    else setMonth(m => m + 1);
   };
 
-  const handleSelect = (day) => {
-    setSelected(day);
-    setCurrent(new Date(day));
-    if (view === 'month') setView('day');
-  };
+  const daysInMonth  = getDaysInMonth(year, month);
+  const firstDayOfMonth = getFirstDayOfMonth(year, month);
 
-  const navLabel = () => {
-    if (view === 'month') return `${MONTHS_FR[current.getMonth()]} ${current.getFullYear()}`;
-    if (view === 'week') {
-      const ws = startOfWeek(current);
-      const we = new Date(ws); we.setDate(ws.getDate() + 6);
-      return `${ws.getDate()} – ${we.getDate()} ${MONTHS_FR[we.getMonth()]} ${we.getFullYear()}`;
-    }
-    return `${selected.getDate()} ${MONTHS_FR[selected.getMonth()]} ${selected.getFullYear()}`;
-  };
+  // Tâches du jour sélectionné
+  const selectedTasks = tasks.filter(t => t.date === selected);
 
-  const weekStart = startOfWeek(current);
+  // Jours qui ont des tâches (pour les points indicateurs)
+  const daysWithTasks = new Set(
+    tasks
+      .filter(t => t.date && t.date.startsWith(`${year}-${String(month+1).padStart(2,'0')}`))
+      .map(t => parseInt(t.date.split('-')[2]))
+  );
+
+  const todayStr = toDateStr(today.getFullYear(), today.getMonth(), today.getDate());
+
+  // Naviguer vers Todo avec la date pré-remplie
+  const goToAddTask = () => {
+    navigate(`/todo?date=${selected}`);
+  };
 
   return (
-    <div className="app-page" style={{ paddingBottom:100 }}>
+    <div className="app-page">
 
       {/* Header */}
-      <div style={{ display:'flex', alignItems:'center', marginBottom:20, gap:10 }}>
-        <button onClick={() => navigate('/notes')}
-          style={{ background:'none', border:'none', cursor:'pointer', display:'flex', padding:4 }}>
-          <FiChevronLeft size={24} color="#2D2D3A"/>
+      <div style={{ display:'flex', alignItems:'center', marginBottom:24 }}>
+        <button className="btn-ghost" onClick={() => navigate('/notes')}>
+          <FiChevronLeft size={26} color="#2D2D3A"/>
         </button>
-        <div style={{ flex:1, fontWeight:900, fontSize:18, color:'#2D2D3A' }}>Calendrier</div>
-        <button onClick={fetchNotes} style={{
-          background:'#F0EDE8', border:'none', borderRadius:10,
-          padding:'7px 12px', fontSize:12, fontWeight:700, color:'#9B9BAD', cursor:'pointer',
-        }}>↻ Sync</button>
-        <button onClick={() => navigate('/todo')} style={{
-          background:'linear-gradient(135deg,#F5A623,#F7C55A)',
-          color:'white', borderRadius:12, padding:'8px 14px',
-          fontWeight:800, fontSize:13, border:'none', cursor:'pointer',
+        <h1 style={{ flex:1, fontWeight:900, fontSize:22, color:'#2D2D3A', marginLeft:8 }}>Calendrier</h1>
+        <button className="btn-ghost" onClick={refresh} title="Rafraîchir">
+          <FiRefreshCw size={20} color="#9B9BAD"/>
+        </button>
+        <button onClick={goToAddTask} style={{
           display:'flex', alignItems:'center', gap:6,
-          boxShadow:'0 4px 14px rgba(245,166,35,0.3)',
+          background:'linear-gradient(135deg,#F5A623,#F7C55A)',
+          border:'none', borderRadius:14, padding:'10px 16px',
+          color:'white', fontWeight:800, fontSize:13,
+          fontFamily:'Nunito,sans-serif', cursor:'pointer',
+          boxShadow:'0 4px 14px rgba(245,166,35,0.3)', marginLeft:8,
         }}>
-          <FiPlus size={15}/> Ajouter
+          <FiPlus size={16}/> Ajouter
         </button>
       </div>
 
-      {/* Switcher vue */}
-      <div style={{
-        display:'flex', background:'#F0EDE8', borderRadius:14,
-        padding:4, marginBottom:20, gap:4,
-      }}>
-        {[['month','Mois'],['week','Semaine'],['day','Jour']].map(([v,l]) => (
-          <button key={v} onClick={() => { setView(v); setCurrent(new Date(selected)); }} style={{
-            flex:1, padding:'9px 0', borderRadius:10, border:'none', cursor:'pointer',
-            fontWeight:800, fontSize:12, fontFamily:'Nunito,sans-serif',
-            background: view===v ? 'white' : 'transparent',
-            color: view===v ? '#F5A623' : '#9B9BAD',
-            boxShadow: view===v ? '0 2px 8px rgba(0,0,0,0.08)' : 'none',
-            transition:'all 0.18s',
-          }}>{l}</button>
+      {/* View tabs */}
+      <div className="card" style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', marginBottom:20, padding:4 }}>
+        {VIEWS.map(v => (
+          <button key={v} onClick={() => setView(v)} style={{
+            padding:'10px', borderRadius:12, border:'none', cursor:'pointer',
+            fontFamily:'Nunito,sans-serif', fontWeight:800, fontSize:13,
+            background: view === v ? 'linear-gradient(135deg,#F5A623,#F7C55A)' : 'transparent',
+            color: view === v ? 'white' : '#9B9BAD',
+            boxShadow: view === v ? '0 4px 12px rgba(245,166,35,0.3)' : 'none',
+            transition:'all 0.2s',
+          }}>{v}</button>
         ))}
       </div>
 
-      {/* Navigation */}
+      {/* Month navigator */}
       <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:16 }}>
-        <button onClick={() => go(-1)} style={{ background:'none', border:'none', cursor:'pointer', padding:8 }}>
-          <FiChevronLeft size={20} color="#2D2D3A"/>
-        </button>
-        <div style={{ fontWeight:800, fontSize:15, color:'#2D2D3A' }}>{navLabel()}</div>
-        <button onClick={() => go(1)} style={{ background:'none', border:'none', cursor:'pointer', padding:8 }}>
-          <FiChevronRight size={20} color="#2D2D3A"/>
-        </button>
+        <button className="btn-ghost" onClick={prevMonth}><FiChevronLeft size={22} color="#2D2D3A"/></button>
+        <span style={{ fontWeight:800, fontSize:16, color:'#2D2D3A' }}>{MONTHS_FR[month]} {year}</span>
+        <button className="btn-ghost" onClick={nextMonth}><FiChevronRight size={22} color="#2D2D3A"/></button>
       </div>
 
-      {/* Calendrier */}
-      <div className="card" style={{ padding:'14px 12px', marginBottom:20 }}>
-        {view === 'month' && (
-          <MonthView
-            year={current.getFullYear()} month={current.getMonth()}
-            today={today} selected={selected}
-            onSelect={handleSelect} notes={notes}
-          />
-        )}
-        {view === 'week' && (
-          <WeekView
-            weekStart={weekStart} today={today}
-            selected={selected} onSelect={setSelected} notes={notes}
-          />
-        )}
-        {view === 'day' && (
-          <>
-            <div style={{ fontWeight:800, fontSize:14, color:'#2D2D3A', marginBottom:14 }}>
-              {DAYS_FR[selected.getDay()]} {selected.getDate()} {MONTHS_FR[selected.getMonth()]} {selected.getFullYear()}
-            </div>
-            {loading
-              ? <div style={{ textAlign:'center', color:'#9B9BAD', fontSize:13, padding:'20px 0' }}>Chargement…</div>
-              : <Timeline notes={notes} filterDay={selected}/>
-            }
-          </>
-        )}
-      </div>
-
-      {/* Notes du jour sélectionné (vue mois uniquement) */}
-      {view === 'month' && selected && !loading && (
-        <div>
-          <div style={{ fontWeight:800, fontSize:15, color:'#2D2D3A', marginBottom:12 }}>
-            Notes du {selected.getDate()} {MONTHS_FR[selected.getMonth()]}
-          </div>
-          <div className="card" style={{ padding:'14px 12px' }}>
-            <Timeline notes={notes} filterDay={selected}/>
-          </div>
+      {/* Calendar grid */}
+      <div className="card" style={{ padding:'16px 12px', marginBottom:24 }}>
+        {/* Day headers */}
+        <div style={{ display:'grid', gridTemplateColumns:'repeat(7,1fr)', marginBottom:8 }}>
+          {DAYS_FR.map(d => (
+            <div key={d} style={{ textAlign:'center', fontSize:11, fontWeight:800, color:'#9B9BAD', paddingBottom:8 }}>{d}</div>
+          ))}
         </div>
-      )}
+
+        {/* Day cells */}
+        <div style={{ display:'grid', gridTemplateColumns:'repeat(7,1fr)', gap:'2px 0' }}>
+          {/* Empty cells before first day */}
+          {Array.from({ length: firstDayOfMonth }).map((_, i) => (
+            <div key={`empty-${i}`}/>
+          ))}
+          {/* Day buttons */}
+          {Array.from({ length: daysInMonth }).map((_, i) => {
+            const day     = i + 1;
+            const dateStr = toDateStr(year, month, day);
+            const isToday    = dateStr === todayStr;
+            const isSelected = dateStr === selected;
+            const hasTask    = daysWithTasks.has(day);
+
+            return (
+              <div key={day} style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:3, padding:'2px 0' }}>
+                <button onClick={() => setSelected(dateStr)} style={{
+                  width:36, height:36, borderRadius:'50%', border:'none', cursor:'pointer',
+                  fontFamily:'Nunito,sans-serif', fontWeight: isToday || isSelected ? 900 : 700,
+                  fontSize:14,
+                  background: isSelected
+                    ? 'linear-gradient(135deg,#F5A623,#F7C55A)'
+                    : isToday
+                      ? '#FFF3DC'
+                      : 'transparent',
+                  color: isSelected ? 'white' : isToday ? '#F5A623' : '#2D2D3A',
+                  boxShadow: isSelected ? '0 4px 12px rgba(245,166,35,0.4)' : 'none',
+                  transition:'all 0.18s',
+                }}>{day}</button>
+                {/* Task indicator dot */}
+                {hasTask && (
+                  <div style={{
+                    width:5, height:5, borderRadius:'50%',
+                    background: isSelected ? '#F5A623' : '#4DBFA8',
+                  }}/>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Selected day tasks */}
+      <div>
+        <div style={{ fontWeight:800, fontSize:15, color:'#2D2D3A', marginBottom:14 }}>
+          {formatDisplay(year, month, parseInt(selected.split('-')[2]))}
+        </div>
+
+        {selectedTasks.length === 0 ? (
+          <div className="card" style={{
+            padding:'32px 20px', textAlign:'center',
+            color:'#9B9BAD', fontSize:14, fontWeight:600,
+          }}>
+            <div style={{ fontSize:32, marginBottom:8 }}>📭</div>
+            Aucune tâche ni note pour ce jour
+          </div>
+        ) : (
+          <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
+            {selectedTasks.map((task, idx) => {
+              const c = CAT_COLORS[task.category] ?? { color:'#9B9BAD', bg:'#F0EEF8' };
+              return (
+                <div key={idx} className="card fade-in" style={{
+                  padding:'14px 16px',
+                  borderLeft:`4px solid ${c.color}`,
+                  borderRadius:'0 14px 14px 0',
+                  background: c.bg,
+                  boxShadow:'none',
+                }}>
+                  <div style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start' }}>
+                    <div style={{ fontWeight:800, fontSize:14, color:'#2D2D3A', flex:1 }}>{task.title}</div>
+                    <span style={{ fontSize:10, fontWeight:800, color:c.color, background:'white', borderRadius:20, padding:'3px 8px', marginLeft:8, flexShrink:0 }}>
+                      {task.category}
+                    </span>
+                  </div>
+                  {task.description && (
+                    <div style={{ fontSize:12, color:'#9B9BAD', marginTop:5, fontWeight:600, lineHeight:1.4 }}>{task.description}</div>
+                  )}
+                  {(task.startTime || task.endTime) && (
+                    <div style={{ fontSize:11, color:c.color, marginTop:6, fontWeight:800 }}>
+                      🕐 {task.startTime}{task.endTime ? ` → ${task.endTime}` : ''}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
 
       <BottomNav/>
     </div>
