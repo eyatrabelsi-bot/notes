@@ -15,23 +15,6 @@ const FILTERS = [
   { value:'basse',   label:'Basse',   color:'#4DBFA8', bg:'#E1F7F3' },
 ];
 
-const PROJECTS = [
-  { name:'Medical App',          progress:25, hours:'9 heures',  gradient:'linear-gradient(135deg,#4DBFA8,#2D9E89)' },
-  { name:'Making History Notes', progress:80, hours:'10 heures', gradient:'linear-gradient(135deg,#E8737A,#C9565D)' },
-];
-
-function CircleProgress({ value }) {
-  const r=26, circ=2*Math.PI*r, filled=(value/100)*circ;
-  return (
-    <svg width="64" height="64" viewBox="0 0 64 64">
-      <circle cx="32" cy="32" r={r} fill="none" stroke="rgba(255,255,255,0.25)" strokeWidth="5"/>
-      <circle cx="32" cy="32" r={r} fill="none" stroke="white" strokeWidth="5"
-        strokeDasharray={`${filled} ${circ}`} strokeLinecap="round" transform="rotate(-90 32 32)"/>
-      <text x="32" y="37" textAnchor="middle" fill="white" fontSize="14" fontWeight="800" fontFamily="Nunito,sans-serif">{value}%</text>
-    </svg>
-  );
-}
-
 function MenuItem({ icon, label, onClick, danger }) {
   return (
     <div onClick={onClick} style={{
@@ -157,7 +140,7 @@ export default function Notes() {
 
             <div style={{flex:1, padding:'12px 0'}}>
               <MenuItem icon={<FiHome/>}     label="Accueil"          onClick={() => { navigate('/');         setShowMenu(false); }} />
-              <MenuItem icon={<FiBook/>}     label="Mes Notes"        onClick={() => { navigate('/notes');    setShowMenu(false); }} />
+              <MenuItem icon={<FiBook/>}     label="calendare"        onClick={() => { navigate('/calendar');    setShowMenu(false); }} />
               <hr style={{border:'none', borderTop:'1px solid #f0ede6', margin:'8px 16px'}}/>
               <MenuItem icon={<FiLogOut/>}   label="Se déconnecter"   danger
                 onClick={() => { logout(); navigate('/login'); setShowMenu(false); }} />

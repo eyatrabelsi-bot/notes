@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Validation\ValidationException;
+use App\Models\User;/***pour interagir avec le modèle User*/
+use Illuminate\Http\Request;//pour gérer les requetes HTTP
+use Illuminate\Support\Facades\Hash;//pour securiser des mots de passe
+use Illuminate\Validation\ValidationException;//pour gérer les erreurs de validation
 
 class AuthController extends Controller
 {
@@ -26,7 +26,7 @@ class AuthController extends Controller
             'password' => Hash::make($validated['password']),
         ]);
 
-        $token = $user->createToken('auth_token')->plainTextToken;
+        $token = $user->createToken('auth_token')->plainTextToken;//génère un token d'authentification pour l'utilisateur nouvellement créé
 
         return response()->json([
             'message' => 'Inscription réussie.',
@@ -60,7 +60,7 @@ class AuthController extends Controller
         // Révoquer les anciens tokens pour ne garder qu'un token actif
         $user->tokens()->delete();
 
-        $token = $user->createToken('auth_token')->plainTextToken;
+        $token = $user->createToken('auth_token')->plainTextToken;//génère un token d'authentification pour l'utilisateur
 
         return response()->json([
             'message' => 'Connexion réussie.',
@@ -78,7 +78,7 @@ class AuthController extends Controller
      */
     public function logout(Request $request)
     {
-        $request->user()->currentAccessToken()->delete();
+        $request->user()->currentAccessToken()->delete();//révoque le token d'authentification actuel de l'utilisateur
 
         return response()->json(['message' => 'Déconnexion réussie.']);
     }

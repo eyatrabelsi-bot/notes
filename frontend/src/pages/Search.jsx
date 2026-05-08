@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import api from '../api/axiosInstance';
 import Toast     from '../components/Toast';
 import BottomNav from '../components/BottomNav';
+import NoteForm  from '../components/NoteForm'; // 1. Import the form
 import { FiSearch, FiX, FiEdit2 } from 'react-icons/fi';
 
 const PRIORITY = {
@@ -36,13 +37,20 @@ export default function Search() {
   const [results, setResults]   = useState([]);
   const [loading, setLoading]   = useState(true);
   const [toast, setToast]       = useState(null);
+  
+  // 2. Add states for editing
+  const [editingNote, setEditing] = useState(null);
+  const [showForm, setShowForm]   = useState(false);
 
-  useEffect(() => {
+  const fetchNotes = () => {
+    setLoading(true);
     api.get('/notes')
       .then(({ data }) => { setAll(data); setResults(data); })
       .catch(() => setToast({ message:'Erreur de chargement.', type:'error' }))
       .finally(() => setLoading(false));
-  }, []);
+  };
+
+  useEffect(() => { fetchNotes(); }, []);
 
   useEffect(() => {
     let f = allNotes;
@@ -53,6 +61,19 @@ export default function Search() {
     }
     setResults(f);
   }, [query, priority, allNotes]);
+
+  // 3. Handlers for the form
+  const handleEdit = (note) => {
+    setEditing(note);
+    setShowForm(true);
+  };
+
+  const handleSaved = () => {
+    setShowForm(false);
+    setEditing(null);
+    fetchNotes(); // Refresh list after update
+    setToast({ message: 'Note mise à jour !', type: 'success' });
+  };
 
   return (
     <div className="app-page">
@@ -152,7 +173,9 @@ export default function Search() {
                 )}
                 <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', borderTop:'1px solid #F0EEF8', paddingTop:10 }}>
                   <span style={{ fontSize:11, fontWeight:700, color:'#C4C4D0' }}>{formatDate(note.created_at)}</span>
-                  <button onClick={() => navigate('/notes')} style={{
+                  
+                  {/* 4. Changed the onClick to handleEdit */}
+                  <button onClick={() => handleEdit(note)} style={{
                     display:'flex', alignItems:'center', gap:5,
                     background:'#FFF3DC', border:'none', borderRadius:10,
                     padding:'7px 12px', cursor:'pointer',
@@ -165,6 +188,21 @@ export default function Search() {
               </div>
             );
           })}
+        </div>
+      )}
+
+      {/* 5. Add the Modal overlay for the form */}
+      {showForm && (
+        <div className="modal-overlay" onClick={e => { if(e.target===e.currentTarget) setShowForm(false); }}>
+          <div className="modal-sheet">
+            <div className="modal-handle"/>
+            <NoteForm
+              editingNote={editingNote}
+              onSaved={handleSaved}
+              onCancel={() => setShowForm(false)}
+              showToast={(m, t) => setToast({ message: m, type: t })}
+            />
+          </div>
         </div>
       )}
 

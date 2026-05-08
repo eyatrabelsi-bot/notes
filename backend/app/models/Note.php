@@ -17,6 +17,10 @@ class Note extends Model
         'content',
         'priority',
         'user_id',
+        'created_at',
+    ];
+    protected $casts = [
+        'created_at' => 'datetime',
     ];
 
     /**
