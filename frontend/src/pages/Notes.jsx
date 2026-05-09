@@ -6,7 +6,7 @@ import NoteList  from '../components/NoteList';
 import NoteForm  from '../components/NoteForm';
 import Toast     from '../components/Toast';
 import BottomNav from '../components/BottomNav';
-import { FiMenu, FiSearch, FiCalendar, FiPlus, FiLogOut, FiX, FiHome, FiBook, FiSettings , FiCheckSquare } from 'react-icons/fi';
+import { FiMenu, FiSearch, FiCalendar, FiPlus, FiLogOut, FiHome, FiCheckSquare } from 'react-icons/fi';
 
 const FILTERS = [
   { value:'toutes',  label:'Toutes',  color:'#7B6CF6', bg:'#EEEAFF' },
@@ -15,18 +15,19 @@ const FILTERS = [
   { value:'basse',   label:'Basse',   color:'#4DBFA8', bg:'#E1F7F3' },
 ];
 
+const STATS_CONFIG = [
+  { key:'haute',   label:'Haute',   color:'#E8737A', bg:'#FDEAEB' },
+  { key:'moyenne', label:'Moyenne', color:'#F5A623', bg:'#FFF3DC' },
+  { key:'basse',   label:'Basse',   color:'#4DBFA8', bg:'#E1F7F3' },
+];
+
 function MenuItem({ icon, label, onClick, danger }) {
   return (
-    <div onClick={onClick} style={{
-      display:'flex', alignItems:'center', gap:14,
-      padding:'14px 20px', cursor:'pointer',
-      color: danger ? '#e05a2b' : '#333',
-      fontSize:15, fontWeight:500
-    }}
-    onMouseEnter={e => e.currentTarget.style.background='#f9f7f3'}
-    onMouseLeave={e => e.currentTarget.style.background='transparent'}
+    <div
+      onClick={onClick}
+      className={`menu-item${danger ? ' menu-item--danger' : ''}`}
     >
-      <span style={{fontSize:20, color: danger ? '#e05a2b' : '#888'}}>{icon}</span>
+      <span className="menu-item__icon">{icon}</span>
       {label}
     </div>
   );
@@ -92,8 +93,8 @@ export default function Notes() {
     <div className="app-page">
       {toast && <Toast {...toast} onClose={() => setToast(null)}/>}
 
-      {/* — Top bar — */}
-      <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:24 }}>
+      {/* ── Top bar ── */}
+      <div className="top-bar">
         <button className="btn-ghost" onClick={() => setShowMenu(s => !s)}>
           <FiMenu size={24} color="#2D2D3A"/>
         </button>
@@ -102,48 +103,22 @@ export default function Notes() {
         </button>
       </div>
 
-      {/* — Menu latéral — */}
+      {/* ── Side menu ── */}
       {showMenu && (
         <>
-          <div
-            onClick={() => setShowMenu(false)}
-            style={{
-              position:'fixed', inset:0, zIndex:99,
-              background:'rgba(0,0,0,0.35)'
-            }}
-          />
-          <div style={{
-            position:'fixed', top:0, left:0,
-            width:'72%', height:'100vh',
-            background:'#fff', zIndex:100,
-            borderRadius:'0 24px 24px 0',
-            boxShadow:'4px 0 24px rgba(0,0,0,0.13)',
-            display:'flex', flexDirection:'column',
-            animation:'slideInLeft 0.25s ease'
-          }}>
-            <div style={{
-              background:'linear-gradient(135deg,#f5a623,#f0c050)',
-              padding:'40px 20px 24px',
-              borderRadius:'0 24px 0 0'
-            }}>
-              <div style={{
-                width:56, height:56, borderRadius:'50%',
-                background:'rgba(255,255,255,0.3)',
-                display:'flex', alignItems:'center', justifyContent:'center',
-                fontWeight:700, fontSize:20, color:'#fff', marginBottom:10
-              }}>
-                {initials}
-              </div>
-              <div style={{color:'#fff', fontWeight:700, fontSize:18}}>{username}</div>
-              <div style={{color:'rgba(255,255,255,0.8)', fontSize:13}}>{user?.email}</div>
+          <div className="menu-backdrop" onClick={() => setShowMenu(false)} />
+          <div className="side-menu">
+            <div className="side-menu__header">
+              <div className="side-menu__avatar">{initials}</div>
+              <div className="side-menu__name">{username}</div>
+              <div className="side-menu__email">{user?.email}</div>
             </div>
-
-            <div style={{flex:1, padding:'12px 0'}}>
-              <MenuItem icon={<FiHome/>}     label="Accueil"          onClick={() => { navigate('/');         setShowMenu(false); }} />
-              <MenuItem icon={<FiCalendar/>}     label="Agenda"        onClick={() => { navigate('/calendar');    setShowMenu(false); }} />
-               <MenuItem icon={<FiCheckSquare/>}     label="Taches"          onClick={() => { navigate('/tasks');         setShowMenu(false); }} />
-              <hr style={{border:'none', borderTop:'1px solid #f0ede6', margin:'8px 16px'}}/>
-              <MenuItem icon={<FiLogOut/>}   label="Se déconnecter"   danger
+            <div className="side-menu__body">
+              <MenuItem icon={<FiHome/>}        label="Accueil" onClick={() => { navigate('/');         setShowMenu(false); }} />
+              <MenuItem icon={<FiCalendar/>}    label="Agenda"  onClick={() => { navigate('/calendar'); setShowMenu(false); }} />
+              <MenuItem icon={<FiCheckSquare/>} label="Taches"  onClick={() => { navigate('/tasks');    setShowMenu(false); }} />
+              <hr className="menu-divider" />
+              <MenuItem icon={<FiLogOut/>} label="Se déconnecter" danger
                 onClick={() => { logout(); navigate('/login'); setShowMenu(false); }} />
             </div>
           </div>
@@ -151,74 +126,50 @@ export default function Notes() {
       )}
 
       {/* ── Profile banner ── */}
-      <div style={{
-        background:'linear-gradient(135deg,#F5A623,#F7C55A)',
-        borderRadius:22, padding:'22px 20px',
-        display:'flex', alignItems:'center', gap:16, marginBottom:28,
-        boxShadow:'0 8px 24px rgba(245,166,35,0.28)',
-      }}>
-        <div style={{
-          width:56, height:56, borderRadius:'50%',
-          background:'rgba(255,255,255,0.3)',
-          display:'flex', alignItems:'center', justifyContent:'center',
-          border:'2.5px solid rgba(255,255,255,0.65)',
-          fontSize:18, fontWeight:900, color:'white', flexShrink:0,
-        }}>{initials}</div>
-        <div style={{ flex:1 }}>
-          <div style={{ color:'white', fontWeight:900, fontSize:17 }}>{username}</div>
-          <div style={{ color:'rgba(255,255,255,0.85)', fontSize:12, fontWeight:700, marginTop:2 }}>
+      <div className="profile-banner">
+        <div className="profile-banner__avatar">{initials}</div>
+        <div className="profile-banner__info">
+          <div className="profile-banner__name">{username}</div>
+          <div className="profile-banner__subtitle">
             {stats.total} note{stats.total !== 1 ? 's' : ''} au total
           </div>
         </div>
-        <button onClick={() => navigate('/calendar')} style={{
-          background:'rgba(255,255,255,0.25)', borderRadius:12, padding:10,
-          display:'flex', alignItems:'center', border:'1.5px solid rgba(255,255,255,0.5)',
-          cursor:'pointer',
-        }}>
+        <button className="profile-banner__calendar-btn" onClick={() => navigate('/calendar')}>
           <FiCalendar size={20} color="white"/>
         </button>
       </div>
 
       {/* ── Stats cards ── */}
-      <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:10, marginBottom:28 }}>
-        {[
-          { label:'Haute',   value:stats.haute,   color:'#E8737A', bg:'#FDEAEB' },
-          { label:'Moyenne', value:stats.moyenne, color:'#F5A623', bg:'#FFF3DC' },
-          { label:'Basse',   value:stats.basse,   color:'#4DBFA8', bg:'#E1F7F3' },
-        ].map(s => (
-          <div key={s.label} className="card" style={{ padding:'14px 12px', textAlign:'center' }}>
-            <div style={{ fontSize:22, fontWeight:900, color:s.color }}>{s.value}</div>
-            <div style={{ fontSize:11, fontWeight:800, color:'#9B9BAD', marginTop:3 }}>{s.label}</div>
+      <div className="stats-grid">
+        {STATS_CONFIG.map(s => (
+          <div key={s.key} className="card stats-card">
+            <div className="stats-card__value" style={{ color: s.color }}>{stats[s.key]}</div>
+            <div className="stats-card__label">{s.label}</div>
           </div>
         ))}
       </div>
 
       {/* ── Filter tabs ── */}
-      <div style={{ display:'flex', gap:8, marginBottom:20, overflowX:'auto', paddingBottom:4 }}>
+      <div className="filter-tabs">
         {FILTERS.map(f => (
-          <button key={f.value} onClick={() => setFilter(f.value)} style={{
-            padding:'8px 16px', borderRadius:20, border:'none', cursor:'pointer',
-            fontFamily:'Nunito,sans-serif', fontWeight:800, fontSize:12, whiteSpace:'nowrap',
-            background: filter === f.value ? f.bg : 'white',
-            color: filter === f.value ? f.color : '#9B9BAD',
-            boxShadow: filter === f.value ? `0 0 0 2px ${f.color}` : '0 1px 4px rgba(0,0,0,0.06)',
-            transition:'all 0.18s', flexShrink:0,
-          }}>{f.label}</button>
+          <button
+            key={f.value}
+            onClick={() => setFilter(f.value)}
+            className="filter-tab"
+            style={{
+              background: filter === f.value ? f.bg : 'white',
+              color:      filter === f.value ? f.color : '#9B9BAD',
+              boxShadow:  filter === f.value ? `0 0 0 2px ${f.color}` : '0 1px 4px rgba(0,0,0,0.06)',
+            }}
+          >{f.label}</button>
         ))}
       </div>
 
       {/* ── Notes list ── */}
-      <div style={{ marginBottom:28 }}>
-        <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:16 }}>
-          <span style={{ fontWeight:800, fontSize:17, color:'#2D2D3A' }}>Mes Notes</span>
-          <button onClick={handleNew} style={{
-            display:'flex', alignItems:'center', gap:6,
-            background:'linear-gradient(135deg,#F5A623,#F7C55A)',
-            border:'none', borderRadius:12, padding:'9px 14px',
-            color:'white', fontWeight:800, fontSize:13,
-            fontFamily:'Nunito,sans-serif', cursor:'pointer',
-            boxShadow:'0 4px 14px rgba(245,166,35,0.3)',
-          }}>
+      <div className="notes-section">
+        <div className="notes-section__header">
+          <span className="notes-section__title">Mes Notes</span>
+          <button onClick={handleNew} className="btn-new-note">
             <FiPlus size={16}/> Nouvelle note
           </button>
         </div>
@@ -228,7 +179,6 @@ export default function Notes() {
           onDelete={note => setConfirmDel(note)}
         />
       </div>
-
 
       {/* ── Form modal ── */}
       {showForm && (
@@ -248,23 +198,18 @@ export default function Notes() {
       {/* ── Confirm delete modal ── */}
       {confirmDel && (
         <div className="modal-overlay" onClick={e => { if(e.target===e.currentTarget) setConfirmDel(null); }}>
-          <div className="modal-sheet" style={{ padding:'28px 24px 36px' }}>
+          <div className="modal-sheet modal-sheet--confirm">
             <div className="modal-handle"/>
-            <div style={{ textAlign:'center', marginBottom:24 }}>
-              <div style={{ fontSize:48, marginBottom:12 }}>🗑️</div>
-              <h3 style={{ fontWeight:900, fontSize:18, color:'#2D2D3A', marginBottom:8 }}>Supprimer la note ?</h3>
-              <p style={{ color:'#9B9BAD', fontSize:14, fontWeight:600, lineHeight:1.5 }}>
+            <div className="confirm-delete">
+              <div className="confirm-delete__icon">🗑️</div>
+              <h3 className="confirm-delete__title">Supprimer la note ?</h3>
+              <p className="confirm-delete__text">
                 «{confirmDel.title}» sera définitivement supprimée.
               </p>
             </div>
-            <div style={{ display:'flex', gap:10 }}>
+            <div className="modal-actions">
               <button onClick={() => setConfirmDel(null)} className="btn-secondary" style={{ flex:1 }}>Annuler</button>
-              <button onClick={handleDelete} style={{
-                flex:1, background:'linear-gradient(135deg,#E8737A,#C9565D)',
-                color:'white', border:'none', borderRadius:12, padding:'15px',
-                fontWeight:800, fontSize:15, fontFamily:'Nunito,sans-serif',
-                cursor:'pointer', boxShadow:'0 6px 20px rgba(232,115,122,0.35)',
-              }}>Supprimer</button>
+              <button onClick={handleDelete} className="btn-danger">Supprimer</button>
             </div>
           </div>
         </div>

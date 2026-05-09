@@ -1,9 +1,9 @@
 import { FiEdit2, FiTrash2 } from 'react-icons/fi';
 
 const PRIORITY = {
-  haute:   { label:'Haute',   color:'#E8737A', bg:'#FDEAEB', dot:'🔴' },
-  moyenne: { label:'Moyenne', color:'#F5A623', bg:'#FFF3DC', dot:'🟠' },
-  basse:   { label:'Basse',   color:'#4DBFA8', bg:'#E1F7F3', dot:'🟢' },
+  haute:   { label:'Haute',   color:'#E8737A', bg:'#FDEAEB', dot:'❤️' },
+  moyenne: { label:'Moyenne', color:'#F5A623', bg:'#FFF3DC', dot:'💛' },
+  basse:   { label:'Basse',   color:'#4DBFA8', bg:'#E1F7F3', dot:'💚' },
 };
 
 function formatDate(dateStr) {

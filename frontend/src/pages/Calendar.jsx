@@ -17,17 +17,10 @@ function saveTasks(tasks) {
 const MONTHS_FR = ['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
 const DAYS_FR   = ['Dim','Lun','Mar','Mer','Jeu','Ven','Sam'];
 
-const accent    = '#F5A623';
-const accentBg  = '#FFF9EE';
-const teal      = '#4DBFA8';
-const textMain  = '#2D2D3A';
-const textMuted = '#9B9BAD';
-const cardStyle = { background:'white', borderRadius:18, boxShadow:'0 2px 12px rgba(0,0,0,0.06)' };
-
 const priorityColor = {
   haute:   { bg:'#FFE8E8', text:'#E8737A', dot:'#E8737A' },
-  moyenne: { bg:accentBg,  text:accent,    dot:accent    },
-  basse:   { bg:'#E8F8F5', text:teal,      dot:teal      },
+  moyenne: { bg:'#FFF9EE', text:'#F5A623', dot:'#F5A623' },
+  basse:   { bg:'#E8F8F5', text:'#4DBFA8', dot:'#4DBFA8' },
 };
 
 const PRIORITIES = [
@@ -35,19 +28,6 @@ const PRIORITIES = [
   { value:'moyenne', label:'Moyenne', color:'#F5A623', bg:'#FFF3DC' },
   { value:'basse',   label:'Basse',   color:'#4DBFA8', bg:'#E1F7F3' },
 ];
-
-const fieldStyle = {
-  width:'100%', padding:'14px 16px', borderRadius:14,
-  border:'1.5px solid #ECECF5', fontSize:14, fontWeight:600,
-  color:textMain, outline:'none', boxSizing:'border-box',
-  background:'white', fontFamily:'Nunito,sans-serif',
-  transition:'border-color 0.2s',
-};
-const labelStyle = {
-  display:'block', fontSize:11, fontWeight:800,
-  color:textMuted, marginBottom:8,
-  textTransform:'uppercase', letterSpacing:'0.06em',
-};
 
 export default function Calendar() {
   const navigate = useNavigate();
@@ -60,8 +40,8 @@ export default function Calendar() {
   const [selectedDate, setSelectedDate] = useState(
     `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`
   );
-  const [editingTask, setEditingTask] = useState(null); // modal modifier
-  const [confirmTask, setConfirmTask] = useState(null); // modal supprimer
+  const [editingTask, setEditingTask] = useState(null);
+  const [confirmTask, setConfirmTask] = useState(null);
 
   useEffect(() => {
     const refresh = () => setTasks(loadTasks());
@@ -99,18 +79,14 @@ export default function Calendar() {
       const isToday    = dStr === todayStr;
       const hasTasks   = hasTasksOnDay(dStr);
       cells.push(
-        <button key={d}
+        <button
+          key={d}
           onClick={() => setSelectedDate(dStr)}
           onDoubleClick={() => navigate(`/todo?date=${dStr}`)}
-          style={{
-            height:40, border:'none', cursor:'pointer', borderRadius:'50%',
-            background: isSelected ? accent : 'transparent',
-            color: isSelected ? 'white' : isToday ? accent : textMain,
-            fontWeight:800, fontSize:14, position:'relative',
-            display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:1,
-          }}>
+          className={`cal-day-btn${isSelected ? ' cal-day-btn--selected' : ''}${isToday && !isSelected ? ' cal-day-btn--today' : ''}`}
+        >
           {d}
-          {hasTasks && <div style={{ width:4, height:4, borderRadius:'50%', background: isSelected ? 'white' : teal }}/>}
+          {hasTasks && <div className={`cal-day-dot${isSelected ? ' cal-day-dot--selected' : ''}`}/>}
         </button>
       );
     }
@@ -119,17 +95,15 @@ export default function Calendar() {
 
   // ── Year grid ─────────────────────────────────────────────────
   const renderYearGrid = () => (
-    <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:10 }}>
+    <div className="cal-year-grid">
       {MONTHS_FR.map((m, i) => (
-        <button key={m} onClick={() => { setMonth(i); setView('Mois'); }} style={{
-          ...cardStyle, padding:'20px 10px', textAlign:'center', position:'relative',
-          border: month===i ? `2px solid ${accent}` : '2px solid transparent',
-          background: month===i ? accentBg : 'white',
-          color: month===i ? accent : textMain,
-          fontWeight:800, cursor:'pointer', fontSize:13,
-        }}>
-          {m.substring(0,4)}
-          {hasTasksInMonth(i) && <div style={{ position:'absolute', top:6, right:6, width:6, height:6, borderRadius:'50%', background:teal }}/>}
+        <button
+          key={m}
+          onClick={() => { setMonth(i); setView('Mois'); }}
+          className={`cal-month-btn${month === i ? ' cal-month-btn--active' : ''}`}
+        >
+          {m.substring(0, 4)}
+          {hasTasksInMonth(i) && <div className="cal-month-dot"/>}
         </button>
       ))}
     </div>
@@ -138,101 +112,115 @@ export default function Calendar() {
   const selectedTasks = tasks.filter(t => t.date === selectedDate);
 
   return (
-    <div className="app-page" style={{ background:'#F5F5F0', minHeight:'100vh', padding:'20px 16px 120px' }}>
+    <div className="app-page cal-page">
 
       {/* Header */}
-      <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:20 }}>
-        <h1 style={{ fontWeight:900, fontSize:24, color:textMain, margin:0 }}>Agenda</h1>
-        <button onClick={() => navigate(`/todo?date=${selectedDate}`)} style={{
-          display:'flex', alignItems:'center', gap:6,
-          background:`linear-gradient(135deg,${accent},#F7C55A)`,
-          color:'white', border:'none', borderRadius:12,
-          padding:'10px 18px', fontWeight:800, fontSize:14,
-          cursor:'pointer', boxShadow:`0 4px 12px ${accent}55`,
-          fontFamily:'Nunito,sans-serif',
-        }}>
+      <div className="cal-header">
+        <h1 className="cal-header__title">Agenda</h1>
+        <button
+          onClick={() => navigate(`/todo?date=${selectedDate}`)}
+          className="cal-header__add-btn"
+        >
           <FiPlus size={16}/> Ajouter
         </button>
       </div>
 
       {/* View tabs */}
-      <div style={{ ...cardStyle, display:'flex', padding:4, marginBottom:20 }}>
+      <div className="cal-view-tabs card">
         {['Année','Mois'].map(v => (
-          <button key={v} onClick={() => setView(v)} style={{
-            flex:1, padding:'11px 0', border:'none', borderRadius:12, cursor:'pointer',
-            fontWeight:800, fontSize:14, transition:'all 0.2s', fontFamily:'Nunito,sans-serif',
-            background: view===v ? `linear-gradient(135deg,${accent},#F7C55A)` : 'transparent',
-            color: view===v ? 'white' : textMuted,
-          }}>{v}</button>
+          <button
+            key={v}
+            onClick={() => setView(v)}
+            className={`cal-view-tab${view === v ? ' cal-view-tab--active' : ''}`}
+          >
+            {v}
+          </button>
         ))}
       </div>
 
       {/* Navigator */}
-      <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:16 }}>
-        <button style={{ background:'none', border:'none', cursor:'pointer' }}
-          onClick={() => view==='Année' ? setYear(y=>y-1) : setMonth(m=>m===0?11:m-1)}>
-          <FiChevronLeft size={24} color={textMain}/>
+      <div className="cal-navigator">
+        <button
+          className="btn-ghost"
+          onClick={() => view==='Année' ? setYear(y=>y-1) : setMonth(m=>m===0?11:m-1)}
+        >
+          <FiChevronLeft size={24} className="cal-navigator__icon"/>
         </button>
-        <div style={{ textAlign:'center' }}>
-          <div style={{ fontWeight:800, fontSize:18, color:textMain }}>
+        <div className="cal-navigator__label">
+          <div className="cal-navigator__text">
             {view==='Année' ? year : `${MONTHS_FR[month]} ${year}`}
           </div>
           {view==='Année' && hasTasksInYear(year) && (
-            <div style={{ width:4, height:4, background:teal, borderRadius:'50%', margin:'2px auto 0' }}/>
+            <div className="cal-navigator__year-dot"/>
           )}
         </div>
-        <button style={{ background:'none', border:'none', cursor:'pointer' }}
-          onClick={() => view==='Année' ? setYear(y=>y+1) : setMonth(m=>m===11?0:m+1)}>
-          <FiChevronRight size={24} color={textMain}/>
+        <button
+          className="btn-ghost"
+          onClick={() => view==='Année' ? setYear(y=>y+1) : setMonth(m=>m===11?0:m+1)}
+        >
+          <FiChevronRight size={24} className="cal-navigator__icon"/>
         </button>
       </div>
 
       {/* Calendar grid */}
       {view==='Année' ? renderYearGrid() : (
-        <div style={{ ...cardStyle, padding:16, marginBottom:20 }}>
-          <div style={{ display:'grid', gridTemplateColumns:'repeat(7,1fr)', gap:4, marginBottom:8 }}>
+        <div className="card cal-month-grid-wrap">
+          <div className="cal-day-headers">
             {DAYS_FR.map(d => (
-              <div key={d} style={{ textAlign:'center', fontSize:11, color:textMuted, fontWeight:800 }}>{d}</div>
+              <div key={d} className="cal-day-header">{d}</div>
             ))}
           </div>
-          <div style={{ display:'grid', gridTemplateColumns:'repeat(7,1fr)', gap:4 }}>
+          <div className="cal-day-grid">
             {renderMonthGrid()}
           </div>
         </div>
       )}
 
       {/* Task list */}
-      <div>
+      <div className="cal-task-list">
         {selectedTasks.length === 0 ? (
-          <div style={{ ...cardStyle, padding:30, textAlign:'center', color:textMuted }}>
-            <div style={{ fontSize:32, marginBottom:8 }}>📭</div>
-            <div style={{ fontWeight:700, fontSize:14 }}>Aucune tâche ce jour</div>
+          <div className="card cal-empty-state">
+            <div className="cal-empty-state__icon">📭</div>
+            <div className="cal-empty-state__text">Aucune tâche ce jour</div>
           </div>
         ) : selectedTasks.map(task => {
           const p = priorityColor[task.priority] ?? priorityColor[task.category] ?? priorityColor.moyenne;
           return (
-            <div key={task.id} style={{
-              ...cardStyle, padding:'14px 16px', marginBottom:10,
-              display:'flex', justifyContent:'space-between', alignItems:'center',
-              borderLeft:`4px solid ${p.dot}`,
-            }}>
-              <div style={{ flex:1 }}>
-                <div style={{ fontWeight:800, fontSize:15, color:textMain }}>{task.title}</div>
-                {task.description && <div style={{ fontSize:12, color:textMuted, marginTop:3 }}>{task.description}</div>}
+            <div
+              key={task.id}
+              className="card cal-task-item"
+              style={{ borderLeft:`4px solid ${p.dot}` }}
+            >
+              <div className="cal-task-item__body">
+                <div className="cal-task-item__title">{task.title}</div>
+                {task.description && (
+                  <div className="cal-task-item__desc">{task.description}</div>
+                )}
                 {task.category && (
-                  <span style={{ display:'inline-block', marginTop:6, background:p.bg, color:p.text, fontSize:10, fontWeight:800, padding:'2px 10px', borderRadius:20 }}>
+                  <span
+                    className="cal-task-item__badge"
+                    style={{ background: p.bg, color: p.text }}
+                  >
                     {task.category}
                   </span>
                 )}
                 {(task.startTime || task.endTime) && (
-                  <div style={{ fontSize:11, color:p.dot, marginTop:4, fontWeight:800 }}>
+                  <div className="cal-task-item__time" style={{ color: p.dot }}>
                     🕐 {task.startTime}{task.endTime ? ` → ${task.endTime}` : ''}
                   </div>
                 )}
               </div>
-              <div style={{ display:'flex', gap:14, marginLeft:12 }}>
-                <FiEdit2 size={18} color={accent} style={{ cursor:'pointer' }} onClick={() => setEditingTask({ ...task })}/>
-                <FiTrash2 size={18} color="#E8737A" style={{ cursor:'pointer' }} onClick={() => setConfirmTask(task)}/>
+              <div className="cal-task-item__actions">
+                <FiEdit2
+                  size={18}
+                  className="cal-task-item__edit-icon"
+                  onClick={() => setEditingTask({ ...task })}
+                />
+                <FiTrash2
+                  size={18}
+                  className="cal-task-item__delete-icon"
+                  onClick={() => setConfirmTask(task)}
+                />
               </div>
             </div>
           );
@@ -240,82 +228,70 @@ export default function Calendar() {
       </div>
 
       {/* ══════════════════════════════════════════════════
-          ✅ MODAL MODIFIER — centrée, comme Notes.jsx
+          MODAL MODIFIER
          ══════════════════════════════════════════════════ */}
       {editingTask && (
         <div
+          className="cal-modal-overlay"
           onClick={e => { if (e.target === e.currentTarget) setEditingTask(null); }}
-          style={{
-            position:'fixed', inset:0,
-            background:'rgba(0,0,0,0.45)',
-            display:'flex', alignItems:'center', justifyContent:'center',
-            zIndex:1000, padding:'20px',
-          }}>
-          <div style={{
-            background:'white',
-            borderRadius:28,
-            padding:'32px 28px',
-            width:'100%', maxWidth:420,
-            maxHeight:'90vh', overflowY:'auto',
-            boxShadow:'0 20px 60px rgba(0,0,0,0.18)',
-          }}>
-            {/* Handle + titre */}
-            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:28 }}>
-              <h2 style={{ fontWeight:900, fontSize:20, color:textMain, margin:0 }}>Modifier la tâche</h2>
-              <button onClick={() => setEditingTask(null)}
-                style={{ background:'none', border:'none', cursor:'pointer', display:'flex', padding:6, borderRadius:10 }}>
-                <FiX size={22} color={textMuted}/>
+        >
+          <div className="cal-modal-card">
+            <div className="cal-modal-card__header">
+              <h2 className="cal-modal-card__title">Modifier la tâche</h2>
+              <button
+                className="btn-ghost"
+                onClick={() => setEditingTask(null)}
+              >
+                <FiX size={22} className="cal-modal-card__close-icon"/>
               </button>
             </div>
 
             {/* Titre */}
-            <div style={{ marginBottom:20 }}>
-              <label style={labelStyle}>Titre *</label>
+            <div className="cal-field">
+              <label className="field-label">Titre *</label>
               <input
+                className="field-input"
                 value={editingTask.title || ''}
                 maxLength={100}
-                onChange={e => setEditingTask(t => ({ ...t, title:e.target.value }))}
-                style={fieldStyle}
-                onFocus={e => e.target.style.borderColor = accent}
-                onBlur={e  => e.target.style.borderColor = '#ECECF5'}
+                onChange={e => setEditingTask(t => ({ ...t, title: e.target.value }))}
               />
-              <div style={{ textAlign:'right', fontSize:11, color:textMuted, marginTop:4, fontWeight:600 }}>
+              <div className="cal-field__counter">
                 {(editingTask.title||'').length}/100
               </div>
             </div>
 
             {/* Contenu */}
-            <div style={{ marginBottom:20 }}>
-              <label style={labelStyle}>Contenu</label>
+            <div className="cal-field">
+              <label className="field-label">Contenu</label>
               <textarea
+                className="field-input cal-field__textarea"
                 rows={4}
                 value={editingTask.description || ''}
-                onChange={e => setEditingTask(t => ({ ...t, description:e.target.value }))}
-                style={{ ...fieldStyle, resize:'none', lineHeight:1.6 }}
-                onFocus={e => e.target.style.borderColor = accent}
-                onBlur={e  => e.target.style.borderColor = '#ECECF5'}
+                onChange={e => setEditingTask(t => ({ ...t, description: e.target.value }))}
               />
             </div>
 
             {/* Priorité */}
-            <div style={{ marginBottom:28 }}>
-              <label style={labelStyle}>Priorité</label>
-              <div style={{ display:'flex', gap:8 }}>
+            <div className="cal-field cal-field--last">
+              <label className="field-label">Priorité</label>
+              <div className="cal-priority-group">
                 {PRIORITIES.map(p => {
                   const isActive = editingTask.priority === p.value || editingTask.category === p.value;
                   return (
-                    <button key={p.value}
-                      onClick={() => setEditingTask(t => ({ ...t, priority:p.value }))}
+                    <button
+                      key={p.value}
+                      onClick={() => setEditingTask(t => ({ ...t, priority: p.value }))}
+                      className="cal-priority-btn"
                       style={{
-                        flex:1, padding:'11px 6px', borderRadius:12, border:'none', cursor:'pointer',
-                        fontFamily:'Nunito,sans-serif', fontWeight:800, fontSize:12,
                         background: isActive ? p.bg : '#F4F2EE',
-                        color: isActive ? p.color : textMuted,
-                        boxShadow: isActive ? `0 0 0 2px ${p.color}` : 'none',
-                        display:'flex', alignItems:'center', justifyContent:'center', gap:6,
-                        transition:'all 0.18s',
-                      }}>
-                      <div style={{ width:8, height:8, borderRadius:'50%', background: isActive ? p.color : '#DDD' }}/>
+                        color:      isActive ? p.color : '#9B9BAD',
+                        boxShadow:  isActive ? `0 0 0 2px ${p.color}` : 'none',
+                      }}
+                    >
+                      <div
+                        className="cal-priority-btn__dot"
+                        style={{ background: isActive ? p.color : '#DDD' }}
+                      />
                       {p.label}
                     </button>
                   );
@@ -323,14 +299,8 @@ export default function Calendar() {
               </div>
             </div>
 
-            {/* Bouton */}
-            <button onClick={handleUpdate} style={{
-              width:'100%', padding:'16px', borderRadius:16,
-              background:`linear-gradient(135deg,${accent},#F7C55A)`,
-              color:'white', border:'none', fontWeight:900, fontSize:16,
-              cursor:'pointer', boxShadow:`0 6px 20px rgba(245,166,35,0.35)`,
-              fontFamily:'Nunito,sans-serif',
-            }}>
+            {/* Save */}
+            <button className="btn-primary cal-modal-card__save-btn" onClick={handleUpdate}>
               Mettre à jour
             </button>
           </div>
@@ -338,54 +308,27 @@ export default function Calendar() {
       )}
 
       {/* ══════════════════════════════════════════
-          ✅ MODAL CONFIRMATION SUPPRESSION
+          MODAL CONFIRMATION SUPPRESSION
          ══════════════════════════════════════════ */}
       {confirmTask && (
         <div
+          className="cal-modal-overlay cal-modal-overlay--top"
           onClick={e => { if (e.target === e.currentTarget) setConfirmTask(null); }}
-          style={{
-            position:'fixed', inset:0,
-            background:'rgba(0,0,0,0.45)',
-            display:'flex', alignItems:'center', justifyContent:'center',
-            zIndex:2000, padding:'20px',
-          }}>
-          <div style={{
-            background:'white', borderRadius:28,
-            padding:'36px 28px 28px',
-            width:'100%', maxWidth:360,
-            textAlign:'center',
-            boxShadow:'0 20px 60px rgba(0,0,0,0.18)',
-          }}>
-            <div style={{
-              width:80, height:80, borderRadius:'50%',
-              background:'#FFF3DC',
-              display:'flex', alignItems:'center', justifyContent:'center',
-              margin:'0 auto 20px', fontSize:40,
-            }}>🗑️</div>
-            <h3 style={{ fontWeight:900, fontSize:20, color:textMain, marginBottom:10 }}>
-              Supprimer la note ?
-            </h3>
-            <p style={{ color:textMuted, fontSize:14, fontWeight:600, lineHeight:1.5, marginBottom:28 }}>
+        >
+          <div className="cal-confirm-card">
+            <div className="cal-confirm-card__icon-wrap">🗑️</div>
+            <h3 className="cal-confirm-card__title">Supprimer la note ?</h3>
+            <p className="cal-confirm-card__text">
               «{confirmTask.title}» sera définitivement supprimée.
             </p>
-            <div style={{ display:'flex', gap:12 }}>
-              <button onClick={() => setConfirmTask(null)}
-                style={{
-                  flex:1, padding:'15px', borderRadius:16,
-                  border:'1.5px solid #ECECF5', background:'white',
-                  fontFamily:'Nunito,sans-serif', fontWeight:800, fontSize:15,
-                  color:textMuted, cursor:'pointer',
-                }}>
+            <div className="cal-confirm-card__actions">
+              <button
+                className="btn-secondary cal-confirm-card__cancel-btn"
+                onClick={() => setConfirmTask(null)}
+              >
                 Annuler
               </button>
-              <button onClick={confirmDelete}
-                style={{
-                  flex:1, padding:'15px', borderRadius:16, border:'none',
-                  background:'linear-gradient(135deg,#E8737A,#C9565D)',
-                  fontFamily:'Nunito,sans-serif', fontWeight:800, fontSize:15,
-                  color:'white', cursor:'pointer',
-                  boxShadow:'0 6px 20px rgba(232,115,122,0.4)',
-                }}>
+              <button className="btn-danger" onClick={confirmDelete}>
                 Supprimer
               </button>
             </div>
