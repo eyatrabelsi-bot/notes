@@ -6,7 +6,7 @@ import NoteList  from '../components/NoteList';
 import NoteForm  from '../components/NoteForm';
 import Toast     from '../components/Toast';
 import BottomNav from '../components/BottomNav';
-import { FiMenu, FiSearch, FiCalendar, FiPlus, FiLogOut, FiX, FiHome, FiBook, FiSettings } from 'react-icons/fi';
+import { FiMenu, FiSearch, FiCalendar, FiPlus, FiLogOut, FiX, FiHome, FiBook, FiSettings , FiCheckSquare } from 'react-icons/fi';
 
 const FILTERS = [
   { value:'toutes',  label:'Toutes',  color:'#7B6CF6', bg:'#EEEAFF' },
@@ -140,7 +140,8 @@ export default function Notes() {
 
             <div style={{flex:1, padding:'12px 0'}}>
               <MenuItem icon={<FiHome/>}     label="Accueil"          onClick={() => { navigate('/');         setShowMenu(false); }} />
-              <MenuItem icon={<FiBook/>}     label="calendare"        onClick={() => { navigate('/calendar');    setShowMenu(false); }} />
+              <MenuItem icon={<FiCalendar/>}     label="Agenda"        onClick={() => { navigate('/calendar');    setShowMenu(false); }} />
+               <MenuItem icon={<FiCheckSquare/>}     label="Taches"          onClick={() => { navigate('/tasks');         setShowMenu(false); }} />
               <hr style={{border:'none', borderTop:'1px solid #f0ede6', margin:'8px 16px'}}/>
               <MenuItem icon={<FiLogOut/>}   label="Se déconnecter"   danger
                 onClick={() => { logout(); navigate('/login'); setShowMenu(false); }} />

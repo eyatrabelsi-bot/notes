@@ -15,7 +15,7 @@ class NoteController extends Controller
     {
         $notes = $request->user()
             ->notes()
-            ->orderBy('created_at', 'desc')
+            ->orderBy('date', 'desc')
             ->get();
 
         return response()->json($notes);
@@ -30,7 +30,7 @@ class NoteController extends Controller
             'title'    => 'required|string|max:100',
             'content'  => 'nullable|string',
             'priority' => 'required|in:basse,moyenne,haute',
-            'created_at' => 'nullable|date',
+            'date'     => 'nullable|date',
         ]);
         
 

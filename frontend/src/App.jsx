@@ -7,6 +7,7 @@ import Notes    from './pages/Notes';
 import Search   from './pages/Search';
 import Calendar from './pages/Calendar';
 import Todo     from './pages/Todo';
+import Tasks from './pages/Tasks';
 
 export default function App() {
   return (
@@ -19,6 +20,7 @@ export default function App() {
           <Route path="/search"   element={<PrivateRoute><Search /></PrivateRoute>} />
           <Route path="/calendar" element={<PrivateRoute><Calendar /></PrivateRoute>} />
           <Route path="/todo"     element={<PrivateRoute><Todo /></PrivateRoute>} />
+          <Route path="/tasks" element={<Tasks />} />
           <Route path="*"         element={<Navigate to="/notes" replace />} />
         </Routes>
       </BrowserRouter>

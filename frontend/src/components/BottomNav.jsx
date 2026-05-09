@@ -1,10 +1,10 @@
 import { Link, useLocation } from 'react-router-dom';
-import { FiHome, FiCalendar, FiSearch, FiPlusCircle } from 'react-icons/fi';
+import { FiHome, FiCalendar, FiSearch , FiCheckSquare} from 'react-icons/fi';
 
 const items = [
   { to: '/notes',    Icon: FiHome,       label: 'Accueil'   },
+  { to: '/tasks',    Icon: FiCheckSquare,  label: 'Tâches'    },
   { to: '/calendar', Icon: FiCalendar,   label: 'Agenda'    },
-  { to: '/todo',     Icon: FiPlusCircle, label: 'Tâche'     },
   { to: '/search',   Icon: FiSearch,     label: 'Recherche' },
 ];
 

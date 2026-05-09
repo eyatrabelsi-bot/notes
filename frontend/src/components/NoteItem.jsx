@@ -44,7 +44,7 @@ export default function NoteItem({ note, onEdit, onDelete }) {
       {/* Bottom row */}
       <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', borderTop:'1px solid #F0EEF8', paddingTop:10 }}>
         <span style={{ fontSize:11, fontWeight:700, color:'#C4C4D0' }}>
-          {formatDate(note.created_at)}
+          {formatDate(note.date || note.created_at)}
         </span>
         <div style={{ display:'flex', gap:6 }}>
           <button onClick={() => onEdit(note)} style={{

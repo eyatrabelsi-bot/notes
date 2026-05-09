@@ -89,6 +89,9 @@ export default function Todo() {
           title: form.title.trim(),
           content: form.description.trim() || 'Tâche planifiée',
           priority: form.category,
+          date: form.date,          // ← the date the user picked
+          startTime: form.startTime, // ← optional but useful
+          endTime: form.endTime,
         });
       }
 
