@@ -218,11 +218,15 @@
 
 /* ── Filter tabs ── */
 .filter-tabs {
+  outline: 2px solid currentColor;
+  outline-offset: 0px;
+  box-shadow: none;
   display: flex;
   gap: 8px;
   margin-bottom: 20px;
   overflow-x: auto;
-  padding-bottom: 4px;
+  overflow: visible;  
+  padding-bottom: 4px 8px;
 }
 
 .filter-tab {

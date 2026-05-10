@@ -35,6 +35,7 @@ body {
 /* ── Page wrapper ── */
 .app-page {
   font-family: 'Nunito', sans-serif;
+  overflow-x: visible;
   background: var(--bg);
   min-height: 100vh;
   max-width: 480px;
