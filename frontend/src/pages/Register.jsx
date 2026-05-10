@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { FiUser, FiMail, FiLock, FiEye, FiEyeOff } from 'react-icons/fi';
+import logo from '../assets/logo.png';
 
 export default function Register() {
   const { register } = useAuth();
@@ -36,7 +37,7 @@ export default function Register() {
   };
 
   const fields = [
-    { key:'name',                  label:"Nom d'utilisateur",          type:'text',     icon:<FiUser size={17}/>,  placeholder:'Jean Dupont' },
+    { key:'name',                  label:"Nom d'utilisateur",          type:'text',     icon:<FiUser size={17}/>,  placeholder:'tapez votre nom' },
     { key:'email',                 label:'Email',                      type:'email',    icon:<FiMail size={17}/>,  placeholder:'votre@email.com' },
     { key:'password',              label:'Mot de passe',               type:'password', icon:<FiLock size={17}/>,  placeholder:'Min. 8 caractères', pwd:true },
     { key:'password_confirmation', label:'Confirmer le mot de passe',  type:'password', icon:<FiLock size={17}/>,  placeholder:'Répétez le mot de passe' },
@@ -49,12 +50,15 @@ export default function Register() {
         {/* Logo */}
         <div className="auth-logo">
           <div className="auth-logo__icon">
-            <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
-              <rect x="3" y="3" width="18" height="18" rx="4" fill="white" fillOpacity=".9"/>
-              <path d="M7 8h10M7 12h10M7 16h6" stroke="#F5A623" strokeWidth="2" strokeLinecap="round"/>
-            </svg>
+            <img src={logo} alt="The writing room" 
+                        style={{ 
+                          width: 64, 
+                          height: 64, 
+                          objectFit: 'cover',  // ← change 'contain' en 'cover'
+                          borderRadius: 16 
+                        }} />
           </div>
-          <h1 className="auth-logo__title">Notes Personnelles</h1>
+          <h1 className="auth-logo__title">The writing room</h1>
           <p className="auth-logo__subtitle">Créez votre compte gratuitement</p>
         </div>
 

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { FiMail, FiLock, FiEye, FiEyeOff } from 'react-icons/fi';
+import logo from '../assets/logo.png';
 
 export default function Login() {
   const { login } = useAuth();
@@ -40,11 +41,13 @@ export default function Login() {
         {/* Logo */}
         <div className="auth-logo">
           <div className="auth-logo__icon">
-            <img
-              src="../assets/logo.png"
-              alt="The writing room"
-              style={{ width: 64, height: 64, objectFit: 'contain' }}
-            />
+            <img src={logo} alt="The writing room" 
+            style={{ 
+              width: 64, 
+              height: 64, 
+              objectFit: 'cover',  // ← change 'contain' en 'cover'
+              borderRadius: 16 
+            }} />
           </div>
           <h1 className="auth-logo__title">The writing room</h1>
           <p className="auth-logo__subtitle">
