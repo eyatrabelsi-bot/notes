@@ -21,11 +21,12 @@
 | Côté | Technologie |
 |------|-------------|
 | Frontend | React 18 + Vite |
+| Styling | Tailwind CSS v4 |
 | Routing | React Router DOM |
 | HTTP Client | Axios |
 | Icônes | react-icons (Feather) |
-| Backend | Laravel 10 |
-| Auth | Laravel Sanctum |
+| Backend | Laravel 12 |
+| Auth | Laravel Sanctum 4.3 |
 | Base de données | SQLite |
 
 ---
@@ -33,50 +34,102 @@
 ## 📁 Structure du projet
 
 ```
-projet-notes/
-├── frontend/                  # Application React
+PROJET-NOTES/
+├── .gitignore
+│
+├── frontend/                        # Application React
+│   ├── public/
+│   │   ├── favicon.svg
+│   │   └── icons.svg
 │   ├── src/
 │   │   ├── api/
-│   │   │   └── axiosInstance.js
+│   │   │   └── axiosInstance.js     # Instance Axios configurée
 │   │   ├── assets/
-│   │   │   └── logo.png
+│   │   │   ├── hero.png
+│   │   │   ├── logo.png
+│   │   │   ├── react.svg
+│   │   │   └── vite.svg
 │   │   ├── components/
-│   │   │   ├── BottomNav.jsx
-│   │   │   ├── NoteForm.jsx
-│   │   │   ├── NoteList.jsx
-│   │   │   └── Toast.jsx
+│   │   │   ├── BottomNav.jsx        # Barre de navigation inférieure
+│   │   │   ├── NoteForm.jsx         # Formulaire création/édition note
+│   │   │   ├── NoteItem.jsx         # Carte d'une note
+│   │   │   ├── NoteList.jsx         # Liste des notes
+│   │   │   ├── PrivateRoute.jsx     # Protection des routes authentifiées
+│   │   │   └── Toast.jsx            # Notifications temporaires
 │   │   ├── context/
-│   │   │   └── AuthContext.jsx
+│   │   │   └── AuthContext.jsx      # Contexte global d'authentification
 │   │   ├── pages/
-│   │   │   ├── Login.jsx
-│   │   │   ├── Register.jsx
-│   │   │   ├── Notes.jsx
-│   │   │   ├── Search.jsx
-│   │   │   ├── Tasks.jsx
-│   │   │   ├── Todo.jsx
-│   │   │   └── Calendar.jsx
-│   │   ├── App.jsx
-│   │   └── main.jsx
+│   │   │   ├── Calendar.jsx         # Agenda et calendrier interactif
+│   │   │   ├── Login.jsx            # Page de connexion
+│   │   │   ├── Notes.jsx            # Tableau de bord des notes
+│   │   │   ├── Register.jsx         # Page d'inscription
+│   │   │   ├── Search.jsx           # Recherche de notes
+│   │   │   ├── Tasks.jsx            # Liste des tâches
+│   │   │   └── Todo.jsx             # Formulaire création de tâche
+│   │   ├── App.css
+│   │   ├── App.jsx                  # Routes React Router
+│   │   ├── index.css
+│   │   └── main.jsx                 # Point d'entrée React
+│   ├── .gitignore
+│   ├── eslint.config.js
+│   ├── index.html
+│   ├── package-lock.json
 │   ├── package.json
+│   ├── postcss.config.js
+│   ├── tailwind.config.js
 │   └── vite.config.js
 │
-└── backend/                   # API Laravel
+└── backend/                         # API Laravel
     ├── app/
     │   ├── Http/Controllers/
-    │   │   ├── AuthController.php
-    │   │   ├── NoteController.php
-    │   │   └── TaskController.php
-    │   └── Models/
-    │       ├── User.php
-    │       ├── Note.php
-    │       └── Task.php
+    │   │   ├── AuthController.php   # Inscription / Connexion / Déconnexion
+    │   │   ├── Controller.php       # Contrôleur de base
+    │   │   ├── NoteController.php   # CRUD des notes
+    │   │   ├── TaskController.php   # CRUD des tâches
+    │   │   └── TodoController.php   # Gestion des todos agenda
+    │   ├── Models/
+    │   │   ├── Note.php
+    │   │   ├── Task.php
+    │   │   ├── Todo.php
+    │   │   └── User.php
+    │   └── Providers/
+    │       └── AppServiceProvider.php
+    ├── bootstrap/
+    ├── config/
+    │   ├── app.php
+    │   ├── auth.php
+    │   ├── cache.php
+    │   ├── database.php
+    │   ├── filesystems.php
+    │   ├── logging.php
+    │   ├── mail.php
+    │   ├── queue.php
+    │   ├── sanctum.php              # Config Sanctum (domaines autorisés)
+    │   ├── services.php
+    │   └── session.php
     ├── database/
-    │   └── database.sqlite
+    │   ├── factories/
+    │   ├── migrations/              # Structure des tables BDD
+    │   ├── seeders/
+    │   └── database.sqlite          # Base de données SQLite
+    ├── public/
+    ├── resources/
     ├── routes/
-    │   └── api.php
-    └── config/
-        ├── cors.php
-        └── sanctum.php
+    │   ├── api.php                  # Routes REST de l'API
+    │   ├── console.php
+    │   └── web.php
+    ├── storage/
+    ├── .editorconfig
+    ├── .env                         # Variables d'environnement (ne pas committer)
+    ├── .env.example
+    ├── .gitattributes
+    ├── .gitignore
+    ├── artisan
+    ├── composer.json
+    ├── composer.lock
+    ├── package.json
+    ├── phpunit.xml
+    └── vite.config.js
 ```
 
 ---
@@ -86,7 +139,7 @@ projet-notes/
 ### Prérequis
 
 - Node.js >= 18
-- PHP >= 8.1
+- PHP >= 8.2
 - Composer
 
 ---
@@ -94,7 +147,7 @@ projet-notes/
 ### 1. Cloner le projet
 
 ```bash
-git clone https://github.com/votre-repo/projet-notes.git
+git clone https://github.com/votre-repo/notes.git
 cd projet-notes
 ```
 
@@ -105,7 +158,7 @@ cd projet-notes
 ```bash
 cd backend
 
-# Installer les dépendances
+# Installer les dépendances PHP
 composer install
 
 # Copier le fichier d'environnement
@@ -149,7 +202,7 @@ npm run dev
 ```env
 APP_URL=http://localhost:8000
 DB_CONNECTION=sqlite
-DB_DATABASE=/chemin/absolu/vers/database/database.sqlite
+DB_DATABASE=/chemin/absolu/vers/backend/database/database.sqlite
 
 SANCTUM_STATEFUL_DOMAINS=localhost:5173
 SESSION_DOMAIN=localhost
@@ -168,22 +221,22 @@ SESSION_DOMAIN=localhost
 
 ## 🔌 API Endpoints
 
-| Méthode | Route | Description |
-|---------|-------|-------------|
-| POST | `/api/register` | Inscription |
-| POST | `/api/login` | Connexion |
-| POST | `/api/logout` | Déconnexion |
-| GET | `/api/user` | Utilisateur connecté |
-| GET | `/api/notes` | Liste des notes |
-| POST | `/api/notes` | Créer une note |
-| PUT | `/api/notes/{id}` | Modifier une note |
-| DELETE | `/api/notes/{id}` | Supprimer une note |
-| GET | `/api/tasks` | Liste des tâches |
-| POST | `/api/tasks` | Créer une tâche |
-| PATCH | `/api/tasks/{id}` | Toggle terminé |
-| DELETE | `/api/tasks/{id}` | Supprimer une tâche |
+| Méthode | Route | Description | Auth |
+|---------|-------|-------------|------|
+| POST | `/api/register` | Inscription | ❌ |
+| POST | `/api/login` | Connexion | ❌ |
+| POST | `/api/logout` | Déconnexion | ✅ |
+| GET | `/api/user` | Utilisateur connecté | ✅ |
+| GET | `/api/notes` | Liste des notes | ✅ |
+| POST | `/api/notes` | Créer une note | ✅ |
+| PUT | `/api/notes/{id}` | Modifier une note | ✅ |
+| DELETE | `/api/notes/{id}` | Supprimer une note | ✅ |
+| GET | `/api/tasks` | Liste des tâches | ✅ |
+| POST | `/api/tasks` | Créer une tâche | ✅ |
+| PATCH | `/api/tasks/{id}` | Toggle terminé | ✅ |
+| DELETE | `/api/tasks/{id}` | Supprimer une tâche | ✅ |
 
-> Toutes les routes (sauf register/login) sont protégées par `auth:sanctum`
+> ✅ = nécessite un token Sanctum valide
 
 ---
 
