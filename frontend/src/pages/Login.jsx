@@ -40,12 +40,13 @@ export default function Login() {
         {/* Logo */}
         <div className="auth-logo">
           <div className="auth-logo__icon">
-            <svg width="32" height="32" viewBox="0 0 24 24" fill="none">
-              <rect x="3" y="3" width="18" height="18" rx="4" fill="white" fillOpacity=".9"/>
-              <path d="M7 8h10M7 12h10M7 16h6" stroke="#F5A623" strokeWidth="2" strokeLinecap="round"/>
-            </svg>
+            <img
+              src="../assets/logo.png"
+              alt="The writing room"
+              style={{ width: 64, height: 64, objectFit: 'contain' }}
+            />
           </div>
-          <h1 className="auth-logo__title">Notes Personnelles</h1>
+          <h1 className="auth-logo__title">The writing room</h1>
           <p className="auth-logo__subtitle">
             Connectez-vous pour accéder à vos notes
           </p>
